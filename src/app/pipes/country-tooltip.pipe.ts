@@ -6,11 +6,11 @@ export class CountryTooltipPipe implements PipeTransform {
 
   transform(value: string): any {
 
-    var lang = langs.where("1", value) ? langs.where("1", value).name : null;
+    const lang = langs.where('1', value) ? langs.where('1', value).name : null;
 
-    if(lang){
+    if (lang) {
       return lang;
-    }else{
+    } else {
       return value;
     }
 

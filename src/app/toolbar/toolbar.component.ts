@@ -1,13 +1,14 @@
 import { Component, Input, Inject, Output, EventEmitter, HostListener } from '@angular/core';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
-import { DomSanitizer, DOCUMENT  } from '@angular/platform-browser';
+import { DOCUMENT } from '@angular/common';
+import { MatDialog } from '@angular/material';
+import { DomSanitizer } from '@angular/platform-browser';
 
-import { SettingsDialog } from './settings-dialog/settings-dialog.component';
+import { SettingsDialogComponent } from './settings-dialog/settings-dialog.component';
 import { MessageDialogComponent } from '../dialogs/message-dialog.component';
 import { VideoDialogComponent } from '../dialogs/video-dialog.component';
 
 @Component({
-  selector: 'visualizer-toolbar',
+  selector: 'app-visualizer-toolbar',
   templateUrl: './toolbar.component.html',
   styleUrls: ['./toolbar.component.css']
 })
@@ -19,9 +20,9 @@ export class ToolbarComponent {
   public fullScreen = false;
 
   videos = [
-      {title: "1: The basics", id:"ixrhgKHKXDY"},
-      {title: "2: Running locally", id: "KgtAgyzwEpk"}
-  ]
+      {title: '1: The basics', id: 'ixrhgKHKXDY'},
+      {title: '2: Running locally', id: 'KgtAgyzwEpk'}
+  ];
 
   about = `
 The development of this tool was initiated by [Mads Holten Rasmussen](https://www.researchgate.net/profile/Mads_Holten_Rasmussen) and developed in collaboration with [Mathias Bonduel](https://www.researchgate.net/profile/Mathias_Bonduel). It is distributed under the [GNU General Public License](https://www.gnu.org/licenses/gpl.txt).
@@ -39,51 +40,51 @@ A special thanks to [Niras](https://www.niras.com/) for co-funding the Industria
       private _sanitizer: DomSanitizer,
       @Inject(DOCUMENT) private document: any) {}
 
-  change(ev){
+  change(ev) {
     this.title = ev.target.value;
   }
 
-  showAbout(){
-      let dialogRef = this.dialog.open(MessageDialogComponent, {
+  showAbout() {
+      const dialogRef = this.dialog.open(MessageDialogComponent, {
         height: '300px',
         width: '500px',
-        data: {title: "About", message: this.about}
+        data: {title: 'About', message: this.about}
       });
   }
 
-  fullScreenToggle(){
+  fullScreenToggle() {
     this.fullScreen = !this.fullScreen;
     this.toggleFullScreen.emit(this.fullScreen);
   }
 
   // Escape full screen on escape key press
   @HostListener('document:keydown.escape', ['$event']) onKeydownHandler(event: KeyboardEvent) {
-      if(this.fullScreen) this.fullScreenToggle();
+      if (this.fullScreen) { this.fullScreenToggle(); }
   }
 
-  downloadApp(){
+  downloadApp() {
     this.document.location.href = 'https://github.com/MadsHolten/sparql-visualizer/blob/master/sparql-viz.zip?raw=true';
   }
 
-  showVideo(videoId){
-      var safeURL = this._sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1`);
-      let dialogRef = this.dialog.open(VideoDialogComponent, {
+  showVideo(videoId) {
+      const safeURL = this._sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1`);
+      const dialogRef = this.dialog.open(VideoDialogComponent, {
         height: '80%',
         width: '70%',
         data: {url: safeURL}
       });
   }
 
-  showWIP(){
-    let dialogRef = this.dialog.open(MessageDialogComponent, {
+  showWIP() {
+    const dialogRef = this.dialog.open(MessageDialogComponent, {
         height: '300px',
         width: '500px',
-        data: {title: "WIP", message: "This feature is yet to be implemented."}
+        data: {title: 'WIP', message: 'This feature is yet to be implemented.'}
     });
   }
 
-  showSettings(){
-    let dialogRef = this.dialog.open(SettingsDialog, {
+  showSettings() {
+    const dialogRef = this.dialog.open(SettingsDialogComponent, {
         height: '300px',
         width: '500px'
     });

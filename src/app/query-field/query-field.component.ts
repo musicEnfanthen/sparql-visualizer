@@ -1,6 +1,5 @@
 import { Component, Input, EventEmitter, Output } from '@angular/core';
-import * as _ from 'lodash';
-import 'rxjs/add/observable/of';
+
 import 'codemirror/mode/go/go';
 import 'codemirror/mode/sparql/sparql';
 
@@ -10,14 +9,14 @@ import { DataService } from '../services/data.service';
  * @title Table with filtering
  */
 @Component({
-  selector: 'query-field',
-  styleUrls: ['query-field.component.css'],
-  templateUrl: 'query-field.component.html'
+    selector: 'app-query-field',
+    styleUrls: ['query-field.component.css'],
+    templateUrl: 'query-field.component.html'
 })
 
 export class QueryFieldComponent {
 
-    @Input() reasoning: boolean = false;
+    @Input() reasoning = false;
     @Input() query: string;
     @Input() tabIndex: number;
     @Input() localStore: boolean;
@@ -25,7 +24,7 @@ export class QueryFieldComponent {
     @Output() doQuery = new EventEmitter<void>();
     @Output() setReasoning = new EventEmitter<boolean>();
 
-    cmConfig = { 
+    cmConfig = {
         lineNumbers: true,
         firstLineNumber: 1,
         lineWrapping: true,
@@ -35,17 +34,17 @@ export class QueryFieldComponent {
 
     constructor(
         private _ds: DataService
-      ) {}
+    ) {}
 
-    onChange(ev){
+    onChange(ev) {
         this.updatedQuery.emit(ev);
     }
 
-    fireQuery(){
+    fireQuery() {
         this.doQuery.emit();
     }
 
-    resetQuery(){
+    resetQuery() {
         this._ds.getSingle(this.tabIndex)
             .subscribe(x => {
                 this.query = x.query;

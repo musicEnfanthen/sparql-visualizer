@@ -2,11 +2,11 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA} from '@angular/material';
 
 @Component({
-    selector: 'select-dialog',
+    selector: 'app-select-dialog',
     template: `
     <div class="container">
         <h4 mat-dialog-title>{{title}}</h4>
-        
+
         <div mat-dialog-content>
             <p *ngIf="description">{{description}}</p>
             <mat-form-field>
@@ -50,11 +50,11 @@ export class SelectDialogComponent implements OnInit {
     constructor(
         public dialogRef: MatDialogRef<SelectDialogComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any) { }
-    
-    ngOnInit(){
-        this.title = this.data.title ? this.data.title : "Choose from list";
+
+    ngOnInit() {
+        this.title = this.data.title ? this.data.title : 'Choose from list';
         this.description = this.data.description ? this.data.description : null;
-        this.selectText = this.data.selectText ? this.data.selectText : "Select";
+        this.selectText = this.data.selectText ? this.data.selectText : 'Select';
         this.list = this.data.list;
     }
 

@@ -2,7 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA} from '@angular/material';
 
 @Component({
-    selector: 'video-dialog',
+    selector: 'app-video-dialog',
     template: `
     <iframe [src]='data.url' frameborder='0' allow='autoplay; encrypted-media' allowfullscreen></iframe>`,
     styles: [`

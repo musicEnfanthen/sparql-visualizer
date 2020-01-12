@@ -10,305 +10,304 @@ import { SPARQLService } from './services/sparql.service';
 import { catchError } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
 
-  private queryResult;
-  private resultFieldExpanded: boolean = false;
-  public tabIndex: number;
-  public showJSON: boolean = false;
-  public editDescription: boolean = false; // true if in edit mode
-  public newDescription: string; // Holds description changes
-  public tabTitles: string[];
-  public data: TabsData;
-  public projectData: ProjectData;
-  public queryType: string;
-  public reasoning: boolean;
-  public queryTime: number;
-  public textOnly: boolean;
-  public dataOnly: boolean = false; // Feature to be implemented
-  public fullScreen: boolean = false;
+    private queryResult;
+    private resultFieldExpanded = false;
+    public tabIndex: number;
+    public showJSON = false;
+    public editDescription = false; // true if in edit mode
+    public newDescription: string; // Holds description changes
+    public tabTitles: string[];
+    public data: TabsData;
+    public projectData: ProjectData;
+    public queryType: string;
+    public reasoning: boolean;
+    public queryTime: number;
+    public textOnly: boolean;
+    public dataOnly = false; // Feature to be implemented
+    public fullScreen = false;
 
-  public loading: boolean;
-  public loadingMessage: string;
+    public loading: boolean;
+    public loadingMessage: string;
 
-  // Triplestore can easily be disabled
-  public triplestoreOption: boolean = true;
+    // Triplestore can easily be disabled
+    public triplestoreOption = true;
 
-  // Toggle store
-  public localStore: boolean = true;
-  public toggleTooltip: string = 'Switch to triplestore';
+    // Toggle store
+    public localStore = true;
+    public toggleTooltip = 'Switch to triplestore';
 
-  // Codemirror
-  cmConfig = { 
-    lineNumbers: true,
-    firstLineNumber: 1,
-    lineWrapping: true,
-    matchBrackets: true,
-    mode: 'text/turtle'
-  };
+    // Codemirror
+    cmConfig = {
+        lineNumbers: true,
+        firstLineNumber: 1,
+        lineWrapping: true,
+        matchBrackets: true,
+        mode: 'text/turtle'
+    };
 
-  constructor(
-    private _qs: QueryService,
-    private _ds: DataService,
-    private _ss: SPARQLService,
-    private route: ActivatedRoute,
-    public snackBar: MatSnackBar,
-    private titleService: Title
-  ) {}
+    constructor(
+        private _qs: QueryService,
+        private _ds: DataService,
+        private _ss: SPARQLService,
+        private route: ActivatedRoute,
+        public snackBar: MatSnackBar,
+        private titleService: Title
+    ) {}
 
-  ngOnInit(){
-    
-    this.route.queryParams.subscribe(map => {
-      // If a tab is specified, use this. Else default to first tab
-      this.tabIndex = map.tab ? parseInt(map.tab) : 0;
+    ngOnInit() {
 
-      // If triplestore mode is defined, use this
-      this.localStore = map.local == 0 ? false : true;
-      
-      // Get tab titles
-      this._ds.getTabTitles().subscribe(res => this.tabTitles = res);
+        this.route.queryParams.subscribe(map => {
+            // If a tab is specified, use this. Else default to first tab
+            this.tabIndex = map.tab ? parseInt(map.tab, 10) : 0;
 
-      // Get project data
-      this._ds.getProjectData().subscribe(res => {
-        this.projectData = res;
-        // Change page title
-        this.titleService.setTitle(this.projectData.title);
-      });
+            // If triplestore mode is defined, use this
+            this.localStore = map.local === 0 ? false : true;
 
-      this.changeTab(this.tabIndex);
-    });
+            // Get tab titles
+            this._ds.getTabTitles().subscribe(res => this.tabTitles = res);
 
-    // Inject shared services
-    this._ds.loadingStatus.subscribe(loading => this.loading = loading);
-    this._ds.loadingMessage.subscribe(msg => this.loadingMessage = msg);
-  }
-  
-  changeMsg(){
-    this._ds.setLoadingMessage("Loading triples in store");
-  }
+            // Get project data
+            this._ds.getProjectData().subscribe(res => {
+                this.projectData = res;
+                // Change page title
+                this.titleService.setTitle(this.projectData.title);
+            });
 
-  doQuery(){
-    var query = this.data.query;
-    const data = this.data.triples;
-
-    if(!data) return;
-
-    // If no prefix is defined in the query, get it from the turtle file
-    if(query.toLowerCase().indexOf('prefix') == -1){
-
-      query = this._qs.appendPrefixesToQuery(query, data);
-      this.data.query = query;
-
-    }
-
-    // Get the query type
-    this.queryType = this._qs.getQuerytype(query);
-
-    // If in localstore mode
-    if(this.localStore){
-      this.queryLocalstore(query,data);
-    }
-    // If in triplestore mode
-    else{
-      this.queryTriplestore(query);
-    }
-
-  }
-
-  log(ev){
-    console.log(ev);
-  }
-
-  async queryLocalstore(query,data){
-
-    if(this.reasoning){
-
-      // Show loader
-      this._ds.setLoadingMessage("Performing query using Hylar");
-      this._ds.setLoaderStatus(true);
-
-      // Query Hylar based endpoint
-      this._qs.doHylarQuery(query,data)
-        .subscribe(res => {
-          this.queryResult = res;
-          this.resultFieldExpanded = true;
-          this._ds.setLoaderStatus(false);
-        }, err => {
-          this._ds.setLoaderStatus(false);
-          this.queryResult = '';
-          if(err.indexOf("undefined") != -1){
-            this.showSnackbar("The query did not return any results", 10000);
-          }
-          if(err.message && err.name){
-            this.showSnackbar(err.name+': '+err.message, 10000);
-          }
+            this.changeTab(this.tabIndex);
         });
 
-    }else{
+        // Inject shared services
+        this._ds.loadingStatus.subscribe(loading => this.loading = loading);
+        this._ds.loadingMessage.subscribe(msg => this.loadingMessage = msg);
+    }
 
-      // Perform query with client based rdfstore
-      try{
-        const res = await this._qs.doQuery(query,data);
+    changeMsg() {
+        this._ds.setLoadingMessage('Loading triples in store');
+    }
 
-        this.queryResult = res;
-        this.resultFieldExpanded = true;
-      }catch(err){
+    doQuery() {
+        let query = this.data.query;
+        const data = this.data.triples;
 
-        this.queryResult = '';
-        if(err.message && err.name){
-          if(err.indexOf("undefined") != -1){
-            this.showSnackbar("The query did not return any results", 10000);
-          }
-          this.showSnackbar(err.name+': '+err.message, 10000);
+        if (!data) { return; }
+
+        // If no prefix is defined in the query, get it from the turtle file
+        if (query.toLowerCase().indexOf('prefix') === -1) {
+
+            query = this._qs.appendPrefixesToQuery(query, data);
+            this.data.query = query;
+
         }
-      }
+
+        // Get the query type
+        this.queryType = this._qs.getQuerytype(query);
+
+        // If in localstore mode
+        if (this.localStore) {
+            this.queryLocalstore(query, data);
+        } else {
+            this.queryTriplestore(query);
+        }
 
     }
-  }
 
-  async queryTriplestore(query){
-
-    var t1 = Date.now();
-
-    // Perform query
-    var qRes;
-    try{
-      if(this.queryType == 'update'){
-        qRes = await this._ss.updateQuery(query);
-        this.showSnackbar("Query successful");
-        return; // Stop here
-      }else{
-        qRes = await this._ss.getQuery(query, this.reasoning);
-      }
-    }catch(err){
-      return this.showSnackbar(err.statusText);
+    log(ev) {
+        console.log(ev);
     }
 
-    // Show Stardog error message
-    if(qRes.message){
-      console.log(qRes.message);
-      return this.showSnackbar(qRes.message);
-    }
+    async queryLocalstore(query, data) {
 
-    // Capture query time
-    var dt = Date.now()-t1;
-    this.queryTime = dt;
+        if (this.reasoning) {
 
+            // Show loader
+            this._ds.setLoadingMessage('Performing query using Hylar');
+            this._ds.setLoaderStatus(true);
 
+            // Query Hylar based endpoint
+            this._qs.doHylarQuery(query, data)
+                .subscribe(res => {
+                    this.queryResult = res;
+                    this.resultFieldExpanded = true;
+                    this._ds.setLoaderStatus(false);
+                }, err => {
+                    this._ds.setLoaderStatus(false);
+                    this.queryResult = '';
+                    if (err.indexOf('undefined') !== -1) {
+                        this.showSnackbar('The query did not return any results', 10000);
+                    }
+                    if (err.message && err.name) {
+                        this.showSnackbar(err.name + ': ' + err.message, 10000);
+                    }
+                });
 
-    // POST PROCESSING
+        } else {
 
-    // If it's a select query, just return the result as it is
-    if(this.queryType == 'select'){
-      this.queryResult = qRes;
-      this.resultFieldExpanded = true;
-    }
+            // Perform query with client based rdfstore
+            try {
+                const res = await this._qs.doQuery(query, data);
 
-    // If it is a construct query, process data
-    if(this.queryType == 'construct'){
+                this.queryResult = res;
+                this.resultFieldExpanded = true;
+            } catch (err) {
 
-      const q = "CONSTRUCT WHERE {?s ?p ?o}";
-
-      var processed;
-      try{
-        processed = await this._qs.doQuery(q,qRes);
-      }catch(err){
-        console.log(err);
-        return this.showSnackbar(err);
-      }
-
-      if(!processed){
-        this.queryResult = null;
-        this.showSnackbar("Query returned no results. Did you load the correct dataset?");
-        return;
-      }
-
-      this.queryResult = processed;
-      this.resultFieldExpanded = true;
-      
-    }
-
-    // Support for COUNT and DESCRIBE + SHOW RAW
-
-  }
-
-  resetTriples(){
-    this._ds.getSingle(this.tabIndex)
-        .subscribe(x => {
-            this.data.triples = x.triples;
-        });
-  }
-
-  toggleStore(){
-    this.localStore = this.localStore == false ? true : false;
-    this.toggleTooltip = this.toggleTooltip == 'Switch to datasets' ? 'Switch to triplestore' : 'Switch to datasets';
-  }
-
-  changeTab(i){
-    if(i == 'new'){
-      console.log('Add new dataset');
-    }else{
-      this.tabIndex = i;
-      this._ds.getSingle(i)
-        .subscribe(x => {
-            this.data = x;
-
-            // Use reasoning if the JSON says so
-            this.reasoning = x.reasoning ? x.reasoning : false;
-
-            // Hide triples, query and result tab if setting textOnly is true
-            this.textOnly = x.textOnly ? x.textOnly : false;;
-
-            //Perform the query if the tab has a query assigned
-            if(this.data.query){
-              this.doQuery();
-            }else{
-              this.queryResult = null;
+                this.queryResult = '';
+                if (err.message && err.name) {
+                    if (err.indexOf('undefined') !== -1) {
+                        this.showSnackbar('The query did not return any results', 10000);
+                    }
+                    this.showSnackbar(err.name + ': ' + err.message, 10000);
+                }
             }
+
+        }
+    }
+
+    async queryTriplestore(query) {
+
+        const t1 = Date.now();
+
+        // Perform query
+        let qRes;
+        try {
+            if (this.queryType === 'update') {
+                qRes = await this._ss.updateQuery(query);
+                this.showSnackbar('Query successful');
+                return; // Stop here
+            } else {
+                qRes = await this._ss.getQuery(query, this.reasoning);
+            }
+        } catch (err) {
+            return this.showSnackbar(err.statusText);
+        }
+
+        // Show Stardog error message
+        if (qRes.message) {
+            console.log(qRes.message);
+            return this.showSnackbar(qRes.message);
+        }
+
+        // Capture query time
+        const dt = Date.now() - t1;
+        this.queryTime = dt;
+
+
+
+        // POST PROCESSING
+
+        // If it's a select query, just return the result as it is
+        if (this.queryType === 'select') {
+            this.queryResult = qRes;
+            this.resultFieldExpanded = true;
+        }
+
+        // If it is a construct query, process data
+        if (this.queryType === 'construct') {
+
+            const q = 'CONSTRUCT WHERE {?s ?p ?o}';
+
+            let processed;
+            try {
+                processed = await this._qs.doQuery(q, qRes);
+            } catch (err) {
+                console.log(err);
+                return this.showSnackbar(err);
+            }
+
+            if (!processed) {
+                this.queryResult = null;
+                this.showSnackbar('Query returned no results. Did you load the correct dataset?');
+                return;
+            }
+
+            this.queryResult = processed;
+            this.resultFieldExpanded = true;
+
+        }
+
+        // Support for COUNT and DESCRIBE + SHOW RAW
+
+    }
+
+    resetTriples() {
+        this._ds.getSingle(this.tabIndex)
+            .subscribe(x => {
+                this.data.triples = x.triples;
+            });
+    }
+
+    toggleStore() {
+        this.localStore = this.localStore === false ? true : false;
+        this.toggleTooltip = this.toggleTooltip === 'Switch to datasets' ? 'Switch to triplestore' : 'Switch to datasets';
+    }
+
+    changeTab(i) {
+        if (i === 'new') {
+            console.log('Add new dataset');
+        } else {
+            this.tabIndex = i;
+            this._ds.getSingle(i)
+                .subscribe(x => {
+                    this.data = x;
+
+                    // Use reasoning if the JSON says so
+                    this.reasoning = x.reasoning ? x.reasoning : false;
+
+                    // Hide triples, query and result tab if setting textOnly is true
+                    this.textOnly = x.textOnly ? x.textOnly : false;
+
+                    // Perform the query if the tab has a query assigned
+                    if (this.data.query) {
+                        this.doQuery();
+                    } else {
+                        this.queryResult = null;
+                    }
+                });
+
+        }
+    }
+
+    tableClick(URI) {
+        let query;
+        if (this.localStore) {
+            query = `SELECT * WHERE {\n\tBIND(<${URI}> AS ?el)\n\t?el ?key ?value\n}`;
+        } else {
+            query = `SELECT *\nWHERE {\n\tBIND(<${URI}> AS ?el)\n\tOPTIONAL { \n\t\tGRAPH ?graph {\n\t\t\t?el ?key ?value .\n\t\t}\n\t}\n\tOPTIONAL { ?el ?key ?value . }\n}`;
+        }
+        this.data.query = query;
+        this.doQuery();
+    }
+
+    toggleView(ev) {
+        console.log(ev);
+    }
+
+    graphClick(URI) {
+        console.log(URI);
+    }
+
+    showSnackbar(message, duration?) {
+        if (!duration) { duration = 10000; }
+        this.snackBar.open(message, 'close', {
+            duration: duration,
         });
-    
     }
-  }
 
-  tableClick(URI){
-    if(this.localStore){
-      var query = `SELECT * WHERE {\n\tBIND(<${URI}> AS ?el)\n\t?el ?key ?value\n}`;
-    }else{
-      var query = `SELECT *\nWHERE {\n\tBIND(<${URI}> AS ?el)\n\tOPTIONAL { \n\t\tGRAPH ?graph {\n\t\t\t?el ?key ?value .\n\t\t}\n\t}\n\tOPTIONAL { ?el ?key ?value . }\n}`;
+    saveDescription() {
+        // If changes received
+        if (this.newDescription) {
+            this.data.description = this.newDescription;
+        }
+        this.editDescription = false;
     }
-    this.data.query = query;
-    this.doQuery();
-  }
 
-  toggleView(ev){
-    console.log(ev)
-  }
-
-  graphClick(URI){
-    console.log(URI);
-  }
-
-  showSnackbar(message, duration?){
-    if(!duration) duration = 10000
-    this.snackBar.open(message, 'close', {
-      duration: duration,
-    });
-  }
-
-  saveDescription(){
-    // If changes received
-    if(this.newDescription){
-      this.data.description = this.newDescription;
+    update(ev) {
+        console.log(ev);
     }
-    this.editDescription = false;
-  }
-
-  update(ev){
-    console.log(ev);
-  }
 
 }

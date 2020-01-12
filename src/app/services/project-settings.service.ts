@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { LocalStorageService } from 'ngx-store';
-import { HttpClient }   from '@angular/common/http';
 
 // Interfaces
 import { ProjectSettings } from '../settings/settings.component';
@@ -28,7 +27,7 @@ export class ProjectSettingsService {
   public saveDataSettings(object) {
     // convert improperly formatted dropbox link
     object.filePath = object.filePath.replace('www.dropbox', 'dl.dropboxusercontent');
-    
+
     // Save object to {prefix}endpointSettings
     this.lss.set('dataSettings', object);
   }

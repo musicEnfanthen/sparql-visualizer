@@ -1,3 +1,5 @@
+
+import {from as observableFrom,  Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { LocalStorageService } from 'ngx-store';
@@ -5,36 +7,34 @@ import { Connection, query, db, HTTP } from 'stardog';
 import { HttpClient } from '@angular/common/http';
 import * as _ from 'lodash';
 
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/fromPromise';
 
 import { ProjectSettingsService } from './project-settings.service';
 
 @Injectable()
 export class StardogService  extends ProjectSettingsService {
-    
+
     constructor(
         public lss: LocalStorageService,
         public http: HttpClient
-    ) { 
+    ) {
         super(lss);
     }
 
-    loadTriples(triples,graphURI?){
-        if(!graphURI) graphURI = undefined;
+    loadTriples(triples, graphURI?) {
+        if (!graphURI) { graphURI = undefined; }
         // const data = this._toJSONLD(triples)
         const conn = this._getConn();
         const database = this._getDB();
 
         // const mimeType = HTTP.RdfMimeType.TURTLE;
-        return Observable.fromPromise(
+        return observableFrom(
             db.graph.doPut(conn, database, triples, graphURI, 'text/turtle')
         );
         // return Observable.fromPromise(db.graph.doGet(this.conn, 'test'));
     }
 
-    async query(q,reasoning?): Promise<any>{
-        if(!reasoning) reasoning = false;
+    async query(q, reasoning?): Promise<any> {
+        if (!reasoning) { reasoning = false; }
         const conn = this._getConn();
         const database = this._getDB();
 
@@ -42,7 +42,7 @@ export class StardogService  extends ProjectSettingsService {
         return qRes.body;
     }
 
-    private _getConn(){
+    private _getConn() {
         const settings = this.getTriplestoreSettings();
 
         return new Connection({
@@ -52,7 +52,7 @@ export class StardogService  extends ProjectSettingsService {
         });
     }
 
-    private _getDB(){
+    private _getDB() {
         return this.getTriplestoreSettings().database;
     }
 

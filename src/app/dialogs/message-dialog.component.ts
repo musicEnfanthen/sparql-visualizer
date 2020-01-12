@@ -2,7 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA} from '@angular/material';
 
 @Component({
-    selector: 'msg-dialog',
+    selector: 'app-msg-dialog',
     template: `<h4>{{data.title}}</h4>
     <p [innerHTML]="data.message | MarkdownToHtml"></p>`,
     styles: [`

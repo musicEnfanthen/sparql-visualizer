@@ -4,53 +4,54 @@ import { MatDialogRef } from '@angular/material';
 import { DataService } from '../../services/data.service';
 import { ProjectSettingsService } from '../../services/project-settings.service';
 
-export interface Settings{
+
+export interface Settings {
     filePath: string;
 }
 
 // Dialog
 @Component({
-    selector: 'settings-dialog',
+    selector: 'app-settings-dialog',
     templateUrl: './settings-dialog.component.html',
     styleUrls: ['./settings-dialog.component.css'],
     providers: [ DataService, ProjectSettingsService ]
   })
-export class SettingsDialog {
+export class SettingsDialogComponent implements OnInit {
 
-    public title: string = "Settings";
+    public title = 'Settings';
 
     public fileMode: boolean;
     public filePath: string;
 
     constructor(
-        public dialogRef: MatDialogRef<SettingsDialog>,
+        public dialogRef: MatDialogRef<SettingsDialogComponent>,
         private ds: DataService,
         private pss: ProjectSettingsService
     ) { }
 
-    ngOnInit(){
+    ngOnInit() {
         this.getSettings();
     }
 
-    getSettings(){
-        this.ds.getProjectSettings().subscribe(settings => {            
+    getSettings() {
+        this.ds.getProjectSettings().subscribe(settings => {
             // Get file path if one is available
-            if(settings && settings.filePath){
+            if (settings && settings.filePath) {
                 this.fileMode = true;
                 this.filePath = settings.filePath;
             }
         });
     }
 
-    saveSettings(){
-        var settings = {filePath: this.filePath};
+    saveSettings() {
+        const settings = {filePath: this.filePath};
         this.pss.saveDataSettings(settings);
         this.onNoClick();
     }
 
-    toggleFileMode(){
+    toggleFileMode() {
         this.fileMode = !this.fileMode;
-        if(!this.fileMode) this.filePath = "";
+        if (!this.fileMode) { this.filePath = ''; }
     }
 
     // Close when clicking outside
