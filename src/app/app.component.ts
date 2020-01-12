@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material';
 import { Title } from '@angular/platform-browser'; // To override title
+
 import 'codemirror/mode/turtle/turtle';
 
 import { QueryService } from './services/query.service';
 import { DataService, TabsData, ProjectData } from './services/data.service';
 import { SPARQLService } from './services/sparql.service';
-import { catchError } from 'rxjs/operators';
 
 @Component({
     selector: 'app-root',
@@ -52,9 +52,9 @@ export class AppComponent implements OnInit {
     };
 
     constructor(
-        private _qs: QueryService,
-        private _ds: DataService,
-        private _ss: SPARQLService,
+        private queryService: QueryService,
+        private dataService: DataService,
+        private sparqlService: SPARQLService,
         private route: ActivatedRoute,
         public snackBar: MatSnackBar,
         private titleService: Title
@@ -70,10 +70,10 @@ export class AppComponent implements OnInit {
             this.localStore = map.local === 0 ? false : true;
 
             // Get tab titles
-            this._ds.getTabTitles().subscribe(res => this.tabTitles = res);
+            this.dataService.getTabTitles().subscribe(res => this.tabTitles = res);
 
             // Get project data
-            this._ds.getProjectData().subscribe(res => {
+            this.dataService.getProjectData().subscribe(res => {
                 this.projectData = res;
                 // Change page title
                 this.titleService.setTitle(this.projectData.title);
@@ -83,12 +83,12 @@ export class AppComponent implements OnInit {
         });
 
         // Inject shared services
-        this._ds.loadingStatus.subscribe(loading => this.loading = loading);
-        this._ds.loadingMessage.subscribe(msg => this.loadingMessage = msg);
+        this.dataService.loadingStatus.subscribe(loading => this.loading = loading);
+        this.dataService.loadingMessage.subscribe(msg => this.loadingMessage = msg);
     }
 
     changeMsg() {
-        this._ds.setLoadingMessage('Loading triples in store');
+        this.dataService.setLoadingMessage('Loading triples in store');
     }
 
     doQuery() {
@@ -100,13 +100,13 @@ export class AppComponent implements OnInit {
         // If no prefix is defined in the query, get it from the turtle file
         if (query.toLowerCase().indexOf('prefix') === -1) {
 
-            query = this._qs.appendPrefixesToQuery(query, data);
+            query = this.queryService.appendPrefixesToQuery(query, data);
             this.data.query = query;
 
         }
 
         // Get the query type
-        this.queryType = this._qs.getQuerytype(query);
+        this.queryType = this.queryService.getQuerytype(query);
 
         // If in localstore mode
         if (this.localStore) {
@@ -126,17 +126,17 @@ export class AppComponent implements OnInit {
         if (this.reasoning) {
 
             // Show loader
-            this._ds.setLoadingMessage('Performing query using Hylar');
-            this._ds.setLoaderStatus(true);
+            this.dataService.setLoadingMessage('Performing query using Hylar');
+            this.dataService.setLoaderStatus(true);
 
             // Query Hylar based endpoint
-            this._qs.doHylarQuery(query, data)
+            this.queryService.doHylarQuery(query, data)
                 .subscribe(res => {
                     this.queryResult = res;
                     this.resultFieldExpanded = true;
-                    this._ds.setLoaderStatus(false);
+                    this.dataService.setLoaderStatus(false);
                 }, err => {
-                    this._ds.setLoaderStatus(false);
+                    this.dataService.setLoaderStatus(false);
                     this.queryResult = '';
                     if (err.indexOf('undefined') !== -1) {
                         this.showSnackbar('The query did not return any results', 10000);
@@ -150,7 +150,7 @@ export class AppComponent implements OnInit {
 
             // Perform query with client based rdfstore
             try {
-                const res = await this._qs.doQuery(query, data);
+                const res = await this.queryService.doQuery(query, data);
 
                 this.queryResult = res;
                 this.resultFieldExpanded = true;
@@ -176,11 +176,11 @@ export class AppComponent implements OnInit {
         let qRes;
         try {
             if (this.queryType === 'update') {
-                qRes = await this._ss.updateQuery(query);
+                qRes = await this.sparqlService.updateQuery(query);
                 this.showSnackbar('Query successful');
                 return; // Stop here
             } else {
-                qRes = await this._ss.getQuery(query, this.reasoning);
+                qRes = await this.sparqlService.getQuery(query, this.reasoning);
             }
         } catch (err) {
             return this.showSnackbar(err.statusText);
@@ -213,7 +213,7 @@ export class AppComponent implements OnInit {
 
             let processed;
             try {
-                processed = await this._qs.doQuery(q, qRes);
+                processed = await this.queryService.doQuery(q, qRes);
             } catch (err) {
                 console.log(err);
                 return this.showSnackbar(err);
@@ -235,7 +235,7 @@ export class AppComponent implements OnInit {
     }
 
     resetTriples() {
-        this._ds.getSingle(this.tabIndex)
+        this.dataService.getSingle(this.tabIndex)
             .subscribe(x => {
                 this.data.triples = x.triples;
             });
@@ -251,7 +251,7 @@ export class AppComponent implements OnInit {
             console.log('Add new dataset');
         } else {
             this.tabIndex = i;
-            this._ds.getSingle(i)
+            this.dataService.getSingle(i)
                 .subscribe(x => {
                     this.data = x;
 
@@ -291,10 +291,10 @@ export class AppComponent implements OnInit {
         console.log(URI);
     }
 
-    showSnackbar(message, duration?) {
-        if (!duration) { duration = 10000; }
+    showSnackbar(message, durationValue?) {
+        if (!durationValue) { durationValue = 10000; }
         this.snackBar.open(message, 'close', {
-            duration: duration,
+            duration: durationValue
         });
     }
 

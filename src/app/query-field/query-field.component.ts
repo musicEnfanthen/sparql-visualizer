@@ -33,7 +33,7 @@ export class QueryFieldComponent {
     };
 
     constructor(
-        private _ds: DataService
+        private dataService: DataService
     ) {}
 
     onChange(ev) {
@@ -45,7 +45,7 @@ export class QueryFieldComponent {
     }
 
     resetQuery() {
-        this._ds.getSingle(this.tabIndex)
+        this.dataService.getSingle(this.tabIndex)
             .subscribe(x => {
                 this.query = x.query;
                 this.reasoning = x.reasoning;

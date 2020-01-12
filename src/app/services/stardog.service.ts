@@ -14,10 +14,10 @@ import { ProjectSettingsService } from './project-settings.service';
 export class StardogService  extends ProjectSettingsService {
 
     constructor(
-        public lss: LocalStorageService,
+        public localStorageService: LocalStorageService,
         public http: HttpClient
     ) {
-        super(lss);
+        super(localStorageService);
     }
 
     loadTriples(triples, graphURI?) {
@@ -33,12 +33,12 @@ export class StardogService  extends ProjectSettingsService {
         // return Observable.fromPromise(db.graph.doGet(this.conn, 'test'));
     }
 
-    async query(q, reasoning?): Promise<any> {
-        if (!reasoning) { reasoning = false; }
+    async query(q, reasoningValue?): Promise<any> {
+        if (!reasoningValue) { reasoningValue = false; }
         const conn = this._getConn();
         const database = this._getDB();
 
-        const qRes = await query.execute(conn, database, q, undefined, {reasoning: reasoning});
+        const qRes = await query.execute(conn, database, q, undefined, {reasoning: reasoningValue});
         return qRes.body;
     }
 

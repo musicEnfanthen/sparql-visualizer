@@ -37,7 +37,7 @@ A special thanks to [Niras](https://www.niras.com/) for co-funding the Industria
 
   constructor(
       public dialog: MatDialog,
-      private _sanitizer: DomSanitizer,
+      private sanitizer: DomSanitizer,
       @Inject(DOCUMENT) private document: any) {}
 
   change(ev) {
@@ -67,7 +67,7 @@ A special thanks to [Niras](https://www.niras.com/) for co-funding the Industria
   }
 
   showVideo(videoId) {
-      const safeURL = this._sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1`);
+      const safeURL = this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1`);
       const dialogRef = this.dialog.open(VideoDialogComponent, {
         height: '80%',
         width: '70%',

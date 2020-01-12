@@ -1,8 +1,8 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, EventEmitter, Output, ViewChild, AfterViewInit } from '@angular/core';
 import { MatPaginator, MatTableDataSource, MatSnackBar, MatDialog } from '@angular/material';
 
-import { Angular2Csv } from 'angular2-csv/Angular2-csv';
 import * as _ from 'lodash';
+import { ExportToCsv } from 'ts-export-to-csv';
 
 import { SelectDialogComponent } from '../dialogs/select-dialog.component';
 import { DataService } from '../services/data.service';
@@ -18,18 +18,20 @@ import { DataService } from '../services/data.service';
 
 export class SparqlTableComponent implements OnChanges, OnInit, AfterViewInit {
 
+    @Input() queryResult: object;
+    @Input() maxHeight;
+    @Input() queryTime: object;
+    @Output() clickedURI = new EventEmitter<string>();
+
+    // Paginator
+    @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
+
+
     displayedColumns;
     dataSource;
     resultLength: number;
     prefixes: object;
     showDatatypes = false;
-    @Input() queryResult: Object;
-    @Input() maxHeight;
-    @Input() queryTime: Object;
-    @Output() clickedURI = new EventEmitter<string>();
-
-    // Paginator
-    @ViewChild(MatPaginator) paginator: MatPaginator;
 
     constructor(
         private ds: DataService,
@@ -108,14 +110,15 @@ export class SparqlTableComponent implements OnChanges, OnInit, AfterViewInit {
     exportCsv(separator) {
 
         // If ; used as separator, comma is used as decimal separator
-        const decimalseparator = separator === ';' ? ',' : '.';
+        const decimalSeparator = separator === ';' ? ',' : '.';
 
         const options = {
             fieldSeparator: separator,
             quoteStrings: '"',
-            decimalseparator: decimalseparator,
+            decimalseparator: decimalSeparator,
             showLabels: true,
             showTitle: false,
+            filename: 'SPARQL-viz export',
             useBom: true
         };
 
@@ -123,13 +126,15 @@ export class SparqlTableComponent implements OnChanges, OnInit, AfterViewInit {
             return _.mapValues(x, y => y.value);
         });
 
-        new Angular2Csv(data, 'SPARQL-viz export', options);
+        const csvExporter = new ExportToCsv(options);
+
+        csvExporter.generateCsv(data);
     }
 
-    showSnackbar(message, duration?) {
-        if (!duration) { duration = 2000; }
+    showSnackbar(message, durationValue?) {
+        if (!durationValue) { durationValue = 2000; }
         this.snackBar.open(message, 'close', {
-            duration: duration,
+            duration: durationValue,
         });
     }
 

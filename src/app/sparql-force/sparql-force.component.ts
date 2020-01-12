@@ -64,7 +64,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
     private timeEnter: number;
     private timeOut: number;
 
-    @ViewChild('chart') private chartContainer: ElementRef;
+    @ViewChild('chart', { static: true }) private chartContainer: ElementRef;
     @Input() public data: Array<any>;
     @Input() public height: number;
     @Output() clickedURI = new EventEmitter<string>();
@@ -293,11 +293,9 @@ export class SparqlForceComponent implements OnInit, OnChanges {
                 .attr('cy', d => d.y);
 
             links
-                .attr('d', function(d) {
-                    return 'M' 	+ d.s.x + ',' + d.s.y
-                        + 'S' + d.p.x + ',' + d.p.y
-                        + ' ' + d.o.x + ',' + d.o.y;
-                })
+                .attr('d', (d) => 'M' + d.s.x + ',' + d.s.y
+                    + 'S' + d.p.x + ',' + d.p.y
+                    + ' ' + d.o.x + ',' + d.o.y)
             ;
 
             nodeTexts
@@ -391,11 +389,11 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         const parser = N3.Parser();
         const jsonTriples = [];
         return new Promise( (resolve, reject) => {
-                parser.parse(triples, (err, triple, prefixes) => {
+                parser.parse(triples, (err, triple, prefixValues) => {
                     if (triple) {
                         jsonTriples.push(triple);
                     } else {
-                        resolve({triples: jsonTriples, prefixes: prefixes});
+                        resolve({triples: jsonTriples, prefixes: prefixValues});
                     }
                     if (err) {
                         reject(err);

@@ -38,7 +38,7 @@ import { CountryTooltipPipe } from './pipes/country-tooltip.pipe';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
 // Codemirror
-import { CodemirrorModule } from 'ng2-codemirror';
+// import { CodemirrorModule } from 'ng2-codemirror'; TODO: replace
 
 // Clipboard
 import { ClipboardModule } from 'ngx-clipboard';
@@ -103,7 +103,7 @@ const appRoutes: Routes = [
             appRoutes,
             { enableTracing: false } // <-- debugging purposes only
         ),
-        CodemirrorModule,
+        // CodemirrorModule,
         ClipboardModule,
         WebStorageModule,
         BrowserAnimationsModule,

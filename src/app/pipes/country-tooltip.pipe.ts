@@ -4,16 +4,16 @@ import * as langs from 'langs';
 @Pipe({name: 'countrytooltip'})
 export class CountryTooltipPipe implements PipeTransform {
 
-  transform(value: string): any {
+    transform(value: string): any {
 
-    const lang = langs.where('1', value) ? langs.where('1', value).name : null;
+        const lang = langs.where('1', value) ? langs.where('1', value).name : null;
 
-    if (lang) {
-      return lang;
-    } else {
-      return value;
+        if (lang) {
+            return lang;
+        } else {
+            return value;
+        }
+
     }
-
-  }
 
 }

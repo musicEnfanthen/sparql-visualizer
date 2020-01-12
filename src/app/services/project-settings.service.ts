@@ -10,17 +10,17 @@ export class ProjectSettingsService {
   public endpointSettings: ProjectSettings;
 
   constructor(
-    public lss: LocalStorageService
+    public localStorageService: LocalStorageService
   ) { }
 
   public saveTriplestoreSettings(object: ProjectSettings) {
     // Save object to {prefix}endpointSettings
-    this.lss.set('endpointSettings', object);
+    this.localStorageService.set('endpointSettings', object);
   }
 
   public getTriplestoreSettings() {
     // Get object from {prefix}endpointSettings
-    this.endpointSettings = this.lss.get('endpointSettings');
+    this.endpointSettings = this.localStorageService.get('endpointSettings');
     return this.endpointSettings;
   }
 
@@ -29,12 +29,12 @@ export class ProjectSettingsService {
     object.filePath = object.filePath.replace('www.dropbox', 'dl.dropboxusercontent');
 
     // Save object to {prefix}endpointSettings
-    this.lss.set('dataSettings', object);
+    this.localStorageService.set('dataSettings', object);
   }
 
   public getDataSettings() {
     // Get object from {prefix}endpointSettings
-    return this.lss.get('dataSettings');
+    return this.localStorageService.get('dataSettings');
   }
 
 }

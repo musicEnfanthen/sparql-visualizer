@@ -21,14 +21,14 @@ export class SPARQLService {
     public triplestore: string;
 
     constructor(
-        private _http: HttpClient,
-        private _ps: ProjectSettingsService,
-        private _ss: StardogService,
-        private _qs: QueryService
+        private http: HttpClient,
+        private projectSettingsService: ProjectSettingsService,
+        private stardogService: StardogService,
+        private queryService: QueryService
     ) {}
 
     getTriplestoreSettings() {
-        const tss = this._ps.getTriplestoreSettings();
+        const tss = this.projectSettingsService.getTriplestoreSettings();
         this.endpoint = tss.endpoint;
         this.updateEndpoint = tss.updateEndpoint;
         this.dataEndpoint = tss.dataEndpoint;
@@ -47,7 +47,7 @@ export class SPARQLService {
 
         if (!mimeType) {
             // Get query type
-            const queryType = this._qs.getQuerytype(query);
+            const queryType = this.queryService.getQuerytype(query);
             if (queryType === 'construct') {
                 options.responseType = 'text';
                 options.headers = {'Accept': 'text/turtle'};
@@ -57,7 +57,7 @@ export class SPARQLService {
         }
 
         if (this.triplestore === 'stardog') {
-            return this._ss.query(query, reasoning);
+            return this.stardogService.query(query, reasoning);
         }
 
         // Default behavior is Fuseki
@@ -66,7 +66,7 @@ export class SPARQLService {
 
         const body = `query=${query}`;
 
-        return this._http.post(this.endpoint, body, options).toPromise();
+        return this.http.post(this.endpoint, body, options).toPromise();
     }
 
     public updateQuery(query): Promise<any> {
@@ -77,7 +77,7 @@ export class SPARQLService {
         query = query.replace(/\+/g, '%2B');
 
         if (this.triplestore === 'stardog') {
-            return this._ss.query(query);
+            return this.stardogService.query(query);
         }
 
         // Default behavior is Fuseki
@@ -86,7 +86,7 @@ export class SPARQLService {
 
         const body = `update=${query}`;
 
-        return this._http.post(this.updateEndpoint, body, options).toPromise();
+        return this.http.post(this.updateEndpoint, body, options).toPromise();
 
     }
 
@@ -97,7 +97,7 @@ export class SPARQLService {
         if (!this.dataEndpoint) { return new Promise((resolve, reject) => reject('No data endpoint provided!')); }
 
         if (this.triplestore === 'stardog') {
-            return this._ss.loadTriples(triples, graphURI).toPromise();
+            return this.stardogService.loadTriples(triples, graphURI).toPromise();
         }
 
         // Default behavior uses the Graph Store protocol
@@ -113,7 +113,7 @@ export class SPARQLService {
         // If a named graph is specified, set this parameter
         if (graphURI) { options.params = {graph: graphURI}; }
 
-        return this._http.post(this.dataEndpoint, triples, options).toPromise();
+        return this.http.post(this.dataEndpoint, triples, options).toPromise();
 
     }
 
@@ -128,7 +128,7 @@ export class SPARQLService {
             }
         };
 
-        return this._http.get(url, options).toPromise();
+        return this.http.get(url, options).toPromise();
     }
 
 

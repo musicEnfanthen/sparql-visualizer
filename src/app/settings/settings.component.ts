@@ -39,16 +39,16 @@ export class SettingsComponent implements OnInit, OnChanges {
   @Input() triples: string;
 
   constructor(
-    private _pss: ProjectSettingsService,
-    private _ss: SPARQLService,
-    private _ds: DataService,
+    private projectSettingsService: ProjectSettingsService,
+    private sparqlService: SPARQLService,
+    private dataService: DataService,
     private dialog: MatDialog,
     public snackBar: MatSnackBar
   ) { }
 
   ngOnInit() {
     // Get data from local storage
-    const data = this._pss.getTriplestoreSettings();
+    const data = this.projectSettingsService.getTriplestoreSettings();
     if (data) {
       this.projectSettings = data;
     } else {
@@ -61,8 +61,8 @@ export class SettingsComponent implements OnInit, OnChanges {
     }
 
     // Inject shared services
-    this._ds.loadingStatus.subscribe(loading => this.loading = loading);
-    this._ds.loadingMessage.subscribe(msg => this.loadingMessage = msg);
+    this.dataService.loadingStatus.subscribe(loading => this.loading = loading);
+    this.dataService.loadingMessage.subscribe(msg => this.loadingMessage = msg);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -71,7 +71,7 @@ export class SettingsComponent implements OnInit, OnChanges {
 
   onDataChange() {
     // Save to localstore
-    this._pss.saveTriplestoreSettings(this.projectSettings);
+    this.projectSettingsService.saveTriplestoreSettings(this.projectSettings);
   }
 
   showLoadToNamed() {
@@ -94,7 +94,7 @@ export class SettingsComponent implements OnInit, OnChanges {
   async showWipeNamed() {
 
     // Get list of named graphs
-    const namedGraphs = await this._ss.getNamedGraphs();
+    const namedGraphs = await this.sparqlService.getNamedGraphs();
 
     const dialogRef = this.dialog.open(SelectDialogComponent, {
       height: '300px',
@@ -116,7 +116,7 @@ export class SettingsComponent implements OnInit, OnChanges {
 
   loadDataset(namedGraph?) {
     // Get filePath if a source is defined
-    this._ds.getProjectSettings().subscribe(settings => {
+    this.dataService.getProjectSettings().subscribe(settings => {
 
       if (settings && settings.filePath) {
         // Load from external source
@@ -132,7 +132,7 @@ export class SettingsComponent implements OnInit, OnChanges {
         const triples = this.triples;
 
         try {
-          this._ss.loadTriples(triples, namedGraph);
+          this.sparqlService.loadTriples(triples, namedGraph);
         } catch (err) {
           this.showSnackbar(err);
           console.log(err);
@@ -148,7 +148,7 @@ export class SettingsComponent implements OnInit, OnChanges {
   async wipeDB(namedGraph?) {
 
     try {
-      this._ss.wipeDB(namedGraph);
+      this.sparqlService.wipeDB(namedGraph);
       this.showSnackbar('Successfully wiped database');
     } catch (err) {
       this.showSnackbar(err);
@@ -164,41 +164,41 @@ export class SettingsComponent implements OnInit, OnChanges {
   }
 
   async loadExternal(url, namedGraph?) {
-    this._ds.setLoaderStatus(true);
-    this._ds.setLoadingMessage('Downloading triples from external source');
+    this.dataService.setLoaderStatus(true);
+    this.dataService.setLoadingMessage('Downloading triples from external source');
 
     let triplesTTL;
     try {
-      const res = await this._ss.getTriplesFromURL(url);
+      const res = await this.sparqlService.getTriplesFromURL(url);
       triplesTTL = res.body;
     } catch (err) {
-      this._ds.setLoaderStatus(false);
+      this.dataService.setLoaderStatus(false);
       this.showSnackbar('Could not load content from ' + url);
       return;
     }
 
-    this._ds.setLoadingMessage('Loading triples in store');
+    this.dataService.setLoadingMessage('Loading triples in store');
 
     // Load triples in store
     try {
-      await this._ss.loadTriples(triplesTTL, namedGraph);
+      await this.sparqlService.loadTriples(triplesTTL, namedGraph);
     } catch (err) {
       this.showSnackbar(err);
-      this._ds.setLoaderStatus(false);
+      this.dataService.setLoaderStatus(false);
       console.log(err);
       return;
     }
 
-    this._ds.setLoaderStatus(false);
+    this.dataService.setLoaderStatus(false);
 
     this.showSnackbar('Successfully loaded triples in store');
 
   }
 
-  showSnackbar(message, duration?) {
-    if (!duration) { duration = 2000; }
+  showSnackbar(message, durationValue?) {
+    if (!durationValue) { durationValue = 2000; }
     this.snackBar.open(message, 'close', {
-      duration: duration,
+      duration: durationValue,
     });
   }
 

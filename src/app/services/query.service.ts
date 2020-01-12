@@ -1,8 +1,7 @@
-
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import {from as observableFrom } from 'rxjs';
+import { from as observableFrom } from 'rxjs';
 
 import * as Hylar from 'hylar';
 import * as _ from 'lodash';
@@ -11,7 +10,7 @@ import * as rdfstore from 'rdfstore';
 
 export interface Qres {
     actions?;
-    duplicates?: Object[];
+    duplicates?: object[];
     triples?: Triple[];
 }
 
@@ -45,6 +44,7 @@ export class QueryService {
 
         const h = new Hylar();
 
+        // tslint:disable-next-line:no-shadowed-variable
         const saturateAndQuery = async (query, triples) => {
 
             const start = Date.now();
@@ -114,23 +114,26 @@ export class QueryService {
                 return this.prefixesPromise.then(prefixes => {
 
                     // Process result
-                    const triples = _.chain(data.triples).map(x => {
+                    return _.chain(data.triples).map(x => {
                         let s = x.subject.nominalValue;
                         let p = x.predicate.nominalValue;
                         let o = x.object.nominalValue;
 
                         // Abbreviate turtle format
                         if (mimeType === 'text/turtle') {
-                            if (this._abbreviate(s, prefixes) != null) { s = this._abbreviate(s, prefixes); }
-                            if (this._abbreviate(p, prefixes) != null) { p = this._abbreviate(p, prefixes); }
-                            if (this._abbreviate(o, prefixes) != null) { o = this._abbreviate(o, prefixes); }
+                            if (this._abbreviate(s, prefixes) != null) {
+                                s = this._abbreviate(s, prefixes);
+                            }
+                            if (this._abbreviate(p, prefixes) != null) {
+                                p = this._abbreviate(p, prefixes);
+                            }
+                            if (this._abbreviate(o, prefixes) != null) {
+                                o = this._abbreviate(o, prefixes);
+                            }
                         }
 
                         return {subject: s, predicate: p, object: o};
                     }).value();
-
-                    return triples;
-
                 });
 
             });
@@ -178,10 +181,10 @@ export class QueryService {
 
     public sparqlJSON(data) {
         // Get variable keys
-        const vars = _.keysIn(data[0]);
+        const varKeys = _.keysIn(data[0]);
 
         // check that it doesn't return null results
-        if (data[0][vars[0]] == null) {
+        if (data[0][varKeys[0]] == null) {
             return {status: 400, data: 'Query returned no results'};
         }
 
@@ -197,13 +200,17 @@ export class QueryService {
 
         // Loop over data to rename the keys
         for (const i in b) {
-            for (const key in vars) {
-                b[i][vars[key]] = this._renameKeys(b[i][vars[key]], map);
+            if (b.hasOwnProperty(i)) {
+                for (const key in varKeys) {
+                    if (varKeys.hasOwnProperty(key)) {
+                        b[i][varKeys[key]] = this._renameKeys(b[i][varKeys[key]], map);
+                    }
+                }
             }
         }
 
         // Re-format data
-        const reformatted = {head: {vars: vars}, results: {bindings: b}};
+        const reformatted = {head: {vars: varKeys}, results: {bindings: b}};
 
         return {status: 200, data: reformatted};
     }
@@ -231,9 +238,10 @@ export class QueryService {
         const array = [];
 
         const regex = /[a-zA-Z]+\:/g;
-        let m;
 
-        while ((m = regex.exec(str)) !== null) {
+        while (regex.exec(str) !== null) {
+            const m = regex.exec(str);
+
             // This is necessary to avoid infinite loops with zero-width matches
             if (m.index === regex.lastIndex) {
                 regex.lastIndex++;
