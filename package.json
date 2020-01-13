@@ -49,6 +49,7 @@
         "ngx-clipboard": "^12.3.0",
         "ngx-store": "^2.1.0",
         "rdflib": "^0.19.1",
+        "rdfstore": "^0.9.17",
         "rxjs": "~6.4.0",
         "screenfull": "^5.0.0",
         "stardog": "^1.4.0",

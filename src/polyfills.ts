@@ -64,3 +64,14 @@ import 'zone.js/dist/zone'; // Included with Angular CLI.
 
 // For jsonld dependency: Add global to window, assigning the value of window itself.
 (window as any).global = window;
+
+// workaround for Uncaught ReferenceError: Buffer is not defined
+// cf. https://github.com/agoncal/swagger-ui-angular6/issues/2
+// @ts-ignore
+window.Buffer = window.Buffer || require('buffer').Buffer;
+
+// workaround for Uncaught ReferenceError: process is not defined
+// cf. https://github.com/algolia/algoliasearch-client-javascript/issues/691
+(window as any).process = {
+    env: { DEBUG: undefined }
+};

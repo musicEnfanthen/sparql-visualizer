@@ -7,7 +7,7 @@ import { from as observableFrom } from 'rxjs';
 // import * as Hylar from 'hylar';
 import * as _ from 'lodash';
 import * as N3 from 'n3';
-// import * as rdfstore from 'rdfstore';
+import * as rdfstore from 'rdfstore';
 import * as rdflib from 'rdflib';
 
 export interface Qres {
@@ -315,14 +315,12 @@ export class QueryService {
 
     private _createStore() {
         return new Promise((resolve, reject) => {
-            /*
             rdfstore.create((err, store) => {
                 if (err) {
                     reject(err);
                 }
                 resolve(store);
             });
-             */
         });
     }
 
