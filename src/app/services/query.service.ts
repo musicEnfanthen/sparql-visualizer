@@ -32,27 +32,26 @@ export interface HylarConstruct {
 
 @Injectable()
 export class QueryService {
-
     private store;
     private prefixesPromise;
 
-    constructor( public http: HttpClient ) { }
+    constructor(public http: HttpClient) {}
 
     doHylarQuery(query, triples) {
-
         console.log('Do Hylar query');
 
         const h = new Hylar();
 
         // tslint:disable-next-line:no-shadowed-variable
         const saturateAndQuery = async (query, triples) => {
-
             const start = Date.now();
             const mimeType = 'text/turtle';
             const keepOldValues = false;
 
             const saturation = await h.load(triples, mimeType, keepOldValues);
-            if (!saturation) { console.log('Graph saturation failed.'); }
+            if (!saturation) {
+                console.log('Graph saturation failed.');
+            }
 
             let res = await h.query(query);
 
@@ -63,7 +62,9 @@ export class QueryService {
             console.log(message);
 
             // Process result
-            if (res.triples) { res = res.triples; }
+            if (res.triples) {
+                res = res.triples;
+            }
 
             const queryType = this.getQuerytype(query);
 
@@ -75,15 +76,15 @@ export class QueryService {
             }
 
             return res;
-
         };
 
         return observableFrom(saturateAndQuery(query, triples));
     }
 
     doQuery(query, triples, mimeType?) {
-
-        if (!mimeType) { mimeType = 'text/turtle'; }
+        if (!mimeType) {
+            mimeType = 'text/turtle';
+        }
 
         // Get query type
         const queryType = this.getQuerytype(query);
@@ -112,71 +113,76 @@ export class QueryService {
 
                 // Get prefixes
                 return this.prefixesPromise.then(prefixes => {
-
                     // Process result
-                    return _.chain(data.triples).map(x => {
-                        let s = x.subject.nominalValue;
-                        let p = x.predicate.nominalValue;
-                        let o = x.object.nominalValue;
+                    return _.chain(data.triples)
+                        .map(x => {
+                            let s = x.subject.nominalValue;
+                            let p = x.predicate.nominalValue;
+                            let o = x.object.nominalValue;
 
-                        // Abbreviate turtle format
-                        if (mimeType === 'text/turtle') {
-                            if (this._abbreviate(s, prefixes) != null) {
-                                s = this._abbreviate(s, prefixes);
+                            // Abbreviate turtle format
+                            if (mimeType === 'text/turtle') {
+                                if (this._abbreviate(s, prefixes) != null) {
+                                    s = this._abbreviate(s, prefixes);
+                                }
+                                if (this._abbreviate(p, prefixes) != null) {
+                                    p = this._abbreviate(p, prefixes);
+                                }
+                                if (this._abbreviate(o, prefixes) != null) {
+                                    o = this._abbreviate(o, prefixes);
+                                }
                             }
-                            if (this._abbreviate(p, prefixes) != null) {
-                                p = this._abbreviate(p, prefixes);
-                            }
-                            if (this._abbreviate(o, prefixes) != null) {
-                                o = this._abbreviate(o, prefixes);
-                            }
-                        }
 
-                        return {subject: s, predicate: p, object: o};
-                    }).value();
+                            return { subject: s, predicate: p, object: o };
+                        })
+                        .value();
                 });
-
             });
-
     }
 
     public getQuerytype(query) {
-
         let keyWords = [
-            {text: 'select', index: -1},
-            {text: 'construct', index: -1},
-            {text: 'count', index: -1},
-            {text: 'describe', index: -1},
-            {text: 'insert', index: -1},
-            {text: 'delete', index: -1}
+            { text: 'select', index: -1 },
+            { text: 'construct', index: -1 },
+            { text: 'count', index: -1 },
+            { text: 'describe', index: -1 },
+            { text: 'insert', index: -1 },
+            { text: 'delete', index: -1 }
         ];
 
         // Get indexes and set a variable if at least one matches + store lowest index
 
-        let match = false;  // Set to true if some keyword match is found
+        let match = false; // Set to true if some keyword match is found
         let low = Infinity;
 
         keyWords = keyWords.map(item => {
             item.index = query.toLowerCase().indexOf(item.text);
             if (item.index !== -1) {
                 match = true;
-                if (item.index < low) { low = item.index; }
+                if (item.index < low) {
+                    low = item.index;
+                }
             }
             return item;
         });
 
         // If none of the keywords match return null
-        if (!match) { return null; }
+        if (!match) {
+            return null;
+        }
 
         // If more exist, take the lowest
         const lowest = keyWords.find(item => item.index === low);
-        if (!lowest) { return null; }
+        if (!lowest) {
+            return null;
+        }
         const type = lowest.text;
 
-        if (type === 'insert' || type === 'delete') { return 'update'; }
+        if (type === 'insert' || type === 'delete') {
+            return 'update';
+        }
 
         return type;
-
     }
 
     public sparqlJSON(data) {
@@ -185,7 +191,7 @@ export class QueryService {
 
         // check that it doesn't return null results
         if (data[0][varKeys[0]] == null) {
-            return {status: 400, data: 'Query returned no results'};
+            return { status: 400, data: 'Query returned no results' };
         }
 
         // Flatten object array
@@ -210,19 +216,24 @@ export class QueryService {
         }
 
         // Re-format data
-        const reformatted = {head: {vars: varKeys}, results: {bindings: b}};
+        const reformatted = { head: { vars: varKeys }, results: { bindings: b } };
 
-        return {status: 200, data: reformatted};
+        return { status: 200, data: reformatted };
     }
 
     public extractPrefixesFromTTL(triples) {
         // Replace all whitespace characters with a single space and split by space
         // remove empty values
-        const arr = triples.replace(/\s/g, ' ').split(' ').filter(el => el !== '');
+        const arr = triples
+            .replace(/\s/g, ' ')
+            .split(' ')
+            .filter(el => el !== '');
 
         // Get index of all occurences of @prefix
         const pfxIndexes = arr.reduce((a, e, i) => {
-            if (e === '@prefix') { a.push(i); }
+            if (e === '@prefix') {
+                a.push(i);
+            }
             return a;
         }, []);
 
@@ -234,7 +245,7 @@ export class QueryService {
         return obj;
     }
 
-    public nameSpacesInQuery = (str) => {
+    public nameSpacesInQuery = str => {
         const array = [];
 
         const regex = /[a-zA-Z]+\:/g;
@@ -248,7 +259,7 @@ export class QueryService {
             }
 
             // The result can be accessed through the `m`-variable.
-            m.forEach((match) => {
+            m.forEach(match => {
                 match = match.slice(0, -1);
                 if (array.indexOf(match) === -1) {
                     array.push(match);
@@ -256,10 +267,9 @@ export class QueryService {
             });
         }
         return array;
-    }
+    };
 
     public appendPrefixesToQuery(query, triples) {
-
         // Get prefixes from triples
         const prefixes = this.extractPrefixesFromTTL(triples);
 
@@ -280,23 +290,28 @@ export class QueryService {
         }
 
         return query;
-
     }
 
     private _createStore() {
-        return new Promise( (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             rdfstore.create((err, store) => {
-                if (err) { reject(err); }
+                if (err) {
+                    reject(err);
+                }
                 resolve(store);
             });
         });
     }
 
     private _loadTriplesInStore(store, triples, mimeType?) {
-        if (!mimeType) { mimeType = 'text/turtle'; }
+        if (!mimeType) {
+            mimeType = 'text/turtle';
+        }
         return new Promise((resolve, reject) => {
             store.load(mimeType, triples, (err, size) => {
-                if (err) { reject(err); }
+                if (err) {
+                    reject(err);
+                }
                 resolve(size);
             });
         });
@@ -305,7 +320,9 @@ export class QueryService {
     private _executeQuery(store, query) {
         return new Promise((resolve, reject) => {
             store.execute(query, (err, res) => {
-                if (err) { reject(err); }
+                if (err) {
+                    reject(err);
+                }
                 resolve(res);
             });
         });
@@ -314,17 +331,16 @@ export class QueryService {
     private _getPrefixes(triples) {
         // ParseTriples
         const parser = N3.Parser();
-        return new Promise( (resolve, reject) => {
-                parser.parse(triples, (err, triple, prefixes) => {
-                    if (!triple) {
-                        resolve(prefixes);
-                    }
-                    if (err) {
-                        reject(err);
-                    }
-                });
-            }
-        );
+        return new Promise((resolve, reject) => {
+            parser.parse(triples, (err, triple, prefixes) => {
+                if (!triple) {
+                    resolve(prefixes);
+                }
+                if (err) {
+                    reject(err);
+                }
+            });
+        });
     }
 
     private _abbreviate(foi, prefixes) {
@@ -340,11 +356,9 @@ export class QueryService {
             });
         }
         return newVal;
-
     }
 
     public _abbreviateTriples(triples, prefixes) {
-
         const abrTriples = [];
 
         function abbreviate(foi) {
@@ -360,7 +374,6 @@ export class QueryService {
                 });
             }
             return newVal;
-
         }
 
         _.each(triples, d => {
@@ -368,10 +381,16 @@ export class QueryService {
             let p = d.predicate;
             let o = d.object;
 
-            if (abbreviate(s) != null) { s = abbreviate(s); }
-            if (abbreviate(p) != null) { p = abbreviate(p); }
-            if (abbreviate(o) != null) { o = abbreviate(o); }
-            abrTriples.push({subject: s, predicate: p, object: o});
+            if (abbreviate(s) != null) {
+                s = abbreviate(s);
+            }
+            if (abbreviate(p) != null) {
+                p = abbreviate(p);
+            }
+            if (abbreviate(o) != null) {
+                o = abbreviate(o);
+            }
+            abrTriples.push({ subject: s, predicate: p, object: o });
         });
         return abrTriples;
     }
@@ -383,5 +402,4 @@ export class QueryService {
         });
         return Object.assign({}, ...keyValues);
     }
-
 }

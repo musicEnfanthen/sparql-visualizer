@@ -122,9 +122,10 @@
                     }
                 }
             }
-        }},
+        }
+    },
     "defaultProject": "data-vis",
     "cli": {
-        "packageManager": "npm"
+        "packageManager": "yarn"
     }
 }

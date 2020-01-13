@@ -72,10 +72,7 @@ import { AngularDraggableModule } from 'angular2-draggable';
 import { QueryService } from './services/query.service';
 import { StardogService } from './services/stardog.service';
 
-
-const appRoutes: Routes = [
-    { path: '**', component: AppComponent }
-];
+const appRoutes: Routes = [{ path: '**', component: AppComponent }];
 
 @NgModule({
     declarations: [
@@ -129,7 +126,15 @@ const appRoutes: Routes = [
         FlexLayoutModule,
         AngularDraggableModule
     ],
-    providers: [ ProjectSettingsService, Title, DataService, PrefixSimplePipe, SPARQLService, QueryService, StardogService ],
+    providers: [
+        ProjectSettingsService,
+        Title,
+        DataService,
+        PrefixSimplePipe,
+        SPARQLService,
+        QueryService,
+        StardogService
+    ],
     bootstrap: [AppComponent],
     entryComponents: [
         MessageDialogComponent,
@@ -139,4 +144,4 @@ const appRoutes: Routes = [
         SettingsDialogComponent
     ]
 })
-export class AppModule { }
+export class AppModule {}

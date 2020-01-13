@@ -1,11 +1,10 @@
-
 import { Injectable } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer } from '@angular/platform-browser';
 
-import {mergeMap, map} from 'rxjs/operators';
-import { Observable ,  BehaviorSubject } from 'rxjs';
+import { mergeMap, map } from 'rxjs/operators';
+import { Observable, BehaviorSubject } from 'rxjs';
 
 import * as existsFile from 'exists-file';
 import * as _ from 'lodash';
@@ -36,13 +35,12 @@ export interface Data {
 
 @Injectable()
 export class DataService {
-
     constructor(
         public http: HttpClient,
         private route: ActivatedRoute,
-        private pss: ProjectSettingsService,
+        private projectSettingsService: ProjectSettingsService,
         private sanitizer: DomSanitizer
-    ) { }
+    ) {}
 
     private filePath = './assets/data.json';
     private prefixPath = './assets/prefixes.json';
@@ -56,84 +54,100 @@ export class DataService {
 
     getPath(): Observable<string> {
         // Get URL parameters
-        return this.route.queryParams.pipe(map(x => {
-            // If a file path is specified, use this instead of the default
-            let path = './assets/data.json';
-            if (x.file) {
-                // convert improperly formatted dropbox link
-                path = x.file.replace('www.dropbox', 'dl.dropboxusercontent');
-            }
+        return this.route.queryParams.pipe(
+            map(x => {
+                // If a file path is specified, use this instead of the default
+                let path = './assets/data.json';
+                if (x.file) {
+                    // convert improperly formatted dropbox link
+                    path = x.file.replace('www.dropbox', 'dl.dropboxusercontent');
+                }
 
-            return path;
-        }));
+                return path;
+            })
+        );
     }
 
     getProjectData(): Observable<ProjectData> {
         // First get file path from URL query parameter
-        return this.getPath().pipe(mergeMap(path => {
-            return this.http.get<any>(path).pipe(
-                map(x => {
-                    // Title only exists on new JSON
-                    if (this.isOldJSONFormat(x)) {
-                        return {title: 'visualization'};
-                    } else {
-                        const dataNew: Data = x;
-                        return dataNew.project;
-                    }
-                }));
-        }));
+        return this.getPath().pipe(
+            mergeMap(path => {
+                return this.http.get<any>(path).pipe(
+                    map(x => {
+                        // Title only exists on new JSON
+                        if (this.isOldJSONFormat(x)) {
+                            return { title: 'visualization' };
+                        } else {
+                            const dataNew: Data = x;
+                            return dataNew.project;
+                        }
+                    })
+                );
+            })
+        );
     }
 
     getProjectSettings() {
         // First get file path from URL query parameter
-        return this.getPath().pipe(mergeMap(path => {
-            return this.http.get<any>(path).pipe(
-                map(x => {
-                    return x.settings ? x.settings : false;
-                }),
-                map(settings => {
-                    if (!settings) { settings = this.pss.getDataSettings(); }
-                    return settings;
-                }), );
-        }));
+        return this.getPath().pipe(
+            mergeMap(path => {
+                return this.http.get<any>(path).pipe(
+                    map(x => {
+                        return x.settings ? x.settings : false;
+                    }),
+                    map(settings => {
+                        if (!settings) {
+                            settings = this.projectSettingsService.getDataSettings();
+                        }
+                        return settings;
+                    })
+                );
+            })
+        );
     }
 
     getTabTitles(): Observable<string[]> {
         // First get file path from URL query parameter
-        return this.getPath().pipe(mergeMap(path => {
-            return this.http.get<any>(path).pipe(
-                map(x => {
-                    // An extra level has been added to JSON file since first release
-                    // For backward support, a check is needed
-                    if (this.isOldJSONFormat(x)) {
-                        const dataOld: TabsData[] = x;
-                        return _.map(dataOld, d => d.title);
-                    } else {
-                        const dataNew: Data = x;
-                        return _.map(dataNew.tabs, d => d.title);
-                    }
-                }));
-        }));
+        return this.getPath().pipe(
+            mergeMap(path => {
+                return this.http.get<any>(path).pipe(
+                    map(x => {
+                        // An extra level has been added to JSON file since first release
+                        // For backward support, a check is needed
+                        if (this.isOldJSONFormat(x)) {
+                            const dataOld: TabsData[] = x;
+                            return _.map(dataOld, d => d.title);
+                        } else {
+                            const dataNew: Data = x;
+                            return _.map(dataNew.tabs, d => d.title);
+                        }
+                    })
+                );
+            })
+        );
     }
 
     getSingle(index): Observable<TabsData> {
         // First get file path from URL query parameter
-        return this.getPath().pipe(mergeMap(path => {
-            return this.http.get<any>(path).pipe(
-                map(x => {
-                    if (this.isOldJSONFormat(x)) {
-                        return x[index];
-                    } else {
-                        return x.tabs[index];
-                    }
-                }),
-                map(x => {
-                    x.query = Array.isArray(x.query) ? x.query.join('\n') : x.query;
-                    x.description = Array.isArray(x.description) ? x.description.join('\n') : x.description;
-                    x.triples = Array.isArray(x.triples) ? x.triples.join('\n') : x.triples;
-                    return x;
-                }), );
-        }));
+        return this.getPath().pipe(
+            mergeMap(path => {
+                return this.http.get<any>(path).pipe(
+                    map(x => {
+                        if (this.isOldJSONFormat(x)) {
+                            return x[index];
+                        } else {
+                            return x.tabs[index];
+                        }
+                    }),
+                    map(x => {
+                        x.query = Array.isArray(x.query) ? x.query.join('\n') : x.query;
+                        x.description = Array.isArray(x.description) ? x.description.join('\n') : x.description;
+                        x.triples = Array.isArray(x.triples) ? x.triples.join('\n') : x.triples;
+                        return x;
+                    })
+                );
+            })
+        );
     }
 
     getPrefixes() {
@@ -155,5 +169,4 @@ export class DataService {
             return false;
         }
     }
-
 }

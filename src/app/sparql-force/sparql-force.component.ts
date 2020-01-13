@@ -1,4 +1,15 @@
-import { Component, OnInit, OnChanges, SimpleChanges, ViewChild, ElementRef, Input, Output, EventEmitter, HostListener } from '@angular/core';
+import {
+    Component,
+    OnInit,
+    OnChanges,
+    SimpleChanges,
+    ViewChild,
+    ElementRef,
+    Input,
+    Output,
+    EventEmitter,
+    HostListener
+} from '@angular/core';
 
 import * as _ from 'lodash';
 import * as d3_save_svg from 'd3-save-svg';
@@ -9,7 +20,6 @@ import { PrefixSimplePipe } from '../pipes/prefix-simple.pipe';
 
 // Tell TS D3 exists as a variable/object somewhere globally
 declare const d3: any;
-
 
 export interface Node {
     id: string;
@@ -46,13 +56,16 @@ export interface Graph {
     templateUrl: './sparql-force.component.html',
     styleUrls: ['./sparql-force.component.css']
 })
-
 export class SparqlForceComponent implements OnInit, OnChanges {
+    @Input() public data: Array<any>;
+    @Input() public height: number;
+    @Output() clickedURI = new EventEmitter<string>();
+    @ViewChild('chart', { static: true }) private chartContainer: ElementRef;
 
     private graph: Graph;
     private svg;
     private force;
-    public fs = false;  // Fullscreen on?
+    public fullScreen = false; // Fullscreen on?
 
     private divWidth;
     private divHeight;
@@ -64,12 +77,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
     private timeEnter: number;
     private timeOut: number;
 
-    @ViewChild('chart', { static: true }) private chartContainer: ElementRef;
-    @Input() public data: Array<any>;
-    @Input() public height: number;
-    @Output() clickedURI = new EventEmitter<string>();
-
-    constructor( private prefixSimplePipe: PrefixSimplePipe ) { }
+    constructor(private prefixSimplePipe: PrefixSimplePipe) {}
 
     ngOnInit() {
         if (this.data) {
@@ -85,17 +93,18 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         this.getContainerHeight();
     }
 
+    /* TODO: refactor, cf. https://github.com/sindresorhus/screenfull.js/
     fullscreen() {
-        this.fs = this.fs ? false : true;
+        this.fullScreen = !this.fullScreen;
         const el = this.chartContainer.nativeElement;
 
         // Record initial screen width when changing to fullscreen
-        if (this.fs) { this.widthBeforeResize = el.clientWidth; }
+        if (this.fullScreen) { this.widthBeforeResize = el.clientWidth; }
 
-        if (screenfull.enabled) {
+        if (screenfull.isEnabled) {
             screenfull.toggle(el);
         }
-    }
+    }*/
 
     ngOnChanges(changes: SimpleChanges) {
         if (changes.data.currentValue) {
@@ -120,14 +129,14 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         // guard against resize before view is rendered
         if (this.chartContainer) {
             // When changing from fullscreen the recorded width before resize is used
-            if (!this.fs && this.widthBeforeResize) {
+            if (!this.fullScreen && this.widthBeforeResize) {
                 this.divWidth = this.widthBeforeResize;
                 this.widthBeforeResize = null;
             } else {
                 this.divWidth = el.clientWidth;
             }
 
-            this.divHeight = this.fs ? el.clientHeight : this.height;
+            this.divHeight = this.fullScreen ? el.clientHeight : this.height;
 
             // Redraw
             d3.selectAll('svg').remove();
@@ -137,7 +146,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
 
     // Resize on scroll
     @HostListener('mousewheel', ['$event']) onScroll(ev) {
-        const delta = Math.max(-1, Math.min(1, (ev.wheelDelta || -ev.detail)));
+        const delta = Math.max(-1, Math.min(1, ev.wheelDelta || -ev.detail));
         if (delta > 0) {
             console.log('zoom in');
         } else if (delta < 0) {
@@ -147,7 +156,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
 
     saveSVG() {
         const config = {
-            filename: 'sparql-viz-graph',
+            filename: 'sparql-viz-graph'
         };
         d3_save_svg.save(d3.select('svg').node(), config);
     }
@@ -156,10 +165,16 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         const element = this.chartContainer.nativeElement;
 
         // Get container width
-        if (!this.divWidth) { this.divWidth = element.clientWidth; }
-        if (!this.divHeight) { this.divHeight = element.clientHeight; }
+        if (!this.divWidth) {
+            this.divWidth = element.clientWidth;
+        }
+        if (!this.divHeight) {
+            this.divHeight = element.clientHeight;
+        }
 
-        this.svg = d3.select(element).append('svg')
+        this.svg = d3
+            .select(element)
+            .append('svg')
             .attr('width', this.divWidth)
             .attr('height', this.divHeight);
 
@@ -181,7 +196,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
 
         // If type of data is text/turtle (not array)
         // the triples must be parsed to objects instead
-        if ( typeof triples === 'string' ) {
+        if (typeof triples === 'string') {
             this._parseTriples(triples).then(d => {
                 console.log(d);
                 const abr = this._abbreviateTriples(d);
@@ -195,7 +210,9 @@ export class SparqlForceComponent implements OnInit, OnChanges {
     }
 
     public clicked(d) {
-        if (d3.event.defaultPrevented) { return; } // dragged
+        if (d3.event.defaultPrevented) {
+            return;
+        } // dragged
 
         this.clickedURI.emit(d);
     }
@@ -206,13 +223,18 @@ export class SparqlForceComponent implements OnInit, OnChanges {
     }
 
     updateChart() {
-        if (!this.svg) { return; }
+        if (!this.svg) {
+            return;
+        }
         // if(!this.graph) return;
 
         // ==================== Add Marker ====================
-        this.svg.append('svg:defs').selectAll('marker')
+        this.svg
+            .append('svg:defs')
+            .selectAll('marker')
             .data(['end'])
-            .enter().append('svg:marker')
+            .enter()
+            .append('svg:marker')
             .attr('id', String)
             .attr('viewBox', '0 -5 10 10')
             .attr('refX', 30)
@@ -224,7 +246,8 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .attr('points', '0,-5 10,0 0,5');
 
         // ==================== Add Links ====================
-        const links = this.svg.selectAll('.link')
+        const links = this.svg
+            .selectAll('.link')
             .data(this.graph.triples)
             .enter()
             .append('path')
@@ -232,23 +255,26 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .attr('class', 'link');
 
         // ==================== Add Link Names =====================
-        const linkTexts = this.svg.selectAll('.link-text')
+        const linkTexts = this.svg
+            .selectAll('.link-text')
             .data(this.graph.triples)
             .enter()
             .append('text')
             .attr('class', 'link-text')
-            .text( d => d.p.label);
+            .text(d => d.p.label);
 
         // ==================== Add Link Names =====================
-        const nodeTexts = this.svg.selectAll('.node-text')
+        const nodeTexts = this.svg
+            .selectAll('.node-text')
             .data(this._filterNodesByType(this.graph.nodes, 'node'))
             .enter()
             .append('text')
             .attr('class', 'node-text')
-            .text( d => d.label);
+            .text(d => d.label);
 
         // ==================== Add Node =====================
-        const nodes = this.svg.selectAll('.node')
+        const nodes = this.svg
+            .selectAll('.node')
             .data(this._filterNodesByType(this.graph.nodes, 'node'))
             .enter()
             .append('circle')
@@ -281,33 +307,20 @@ export class SparqlForceComponent implements OnInit, OnChanges {
                     return 8;
                 }
             })
-            .on('click', (d) => {
+            .on('click', d => {
                 this.clicked(d);
             })
             .call(this.force.drag); // nodes
 
         // ==================== When dragging ====================
         this.force.on('tick', () => {
-            nodes
-                .attr('cx', d => d.x)
-                .attr('cy', d => d.y);
+            nodes.attr('cx', d => d.x).attr('cy', d => d.y);
 
-            links
-                .attr('d', (d) => 'M' + d.s.x + ',' + d.s.y
-                    + 'S' + d.p.x + ',' + d.p.y
-                    + ' ' + d.o.x + ',' + d.o.y)
-            ;
+            links.attr('d', d => 'M' + d.s.x + ',' + d.s.y + 'S' + d.p.x + ',' + d.p.y + ' ' + d.o.x + ',' + d.o.y);
 
-            nodeTexts
-                .attr('x', d => d.x + 12)
-                .attr('y', d => d.y + 3)
-            ;
+            nodeTexts.attr('x', d => d.x + 12).attr('y', d => d.y + 3);
 
-
-            linkTexts
-                .attr('x', d => 4 + (d.s.x + d.p.x + d.o.x) / 3)
-                .attr('y', d => 4 + (d.s.y + d.p.y + d.o.y) / 3)
-            ;
+            linkTexts.attr('x', d => 4 + (d.s.x + d.p.x + d.o.x) / 3).attr('y', d => 4 + (d.s.y + d.p.y + d.o.y) / 3);
         });
 
         // ==================== Run ====================
@@ -328,15 +341,15 @@ export class SparqlForceComponent implements OnInit, OnChanges {
     }
 
     private _triplesToGraph(triples) {
-
-        if (!triples) { return; }
+        if (!triples) {
+            return;
+        }
 
         // Graph
-        const graph: Graph = {nodes: [], links: [], triples: []};
+        const graph: Graph = { nodes: [], links: [], triples: [] };
 
         // Initial Graph from triples
         triples.forEach(triple => {
-
             const subjId = this.prefixSimplePipe.transform(triple.subject);
             const predId = this.prefixSimplePipe.transform(triple.predicate);
             let objId = this.prefixSimplePipe.transform(triple.object);
@@ -347,13 +360,13 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             }
 
             let subjNode: Node = this._filterNodesById(graph.nodes, subjId)[0];
-            let objNode: Node  = this._filterNodesById(graph.nodes, objId)[0];
+            let objNode: Node = this._filterNodesById(graph.nodes, objId)[0];
 
-            const predNode: Node = {id: predId, label: predId, weight: 1, type: 'pred'} ;
+            const predNode: Node = { id: predId, label: predId, weight: 1, type: 'pred' };
             graph.nodes.push(predNode);
 
             if (subjNode == null) {
-                subjNode = {id: subjId, label: subjId, weight: 1, type: 'node'};
+                subjNode = { id: subjId, label: subjId, weight: 1, type: 'node' };
                 // MB: here I made some mistake. The objNode.label cannot be found as it is only introduced in the next if
                 // if(objNode.label == "bot:Space"){subjNode.instSpace = true} //MB
                 // else if(objNode.label == "prop:SpaceType"){subjNode.instSpaceType = true} //MB
@@ -362,10 +375,13 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             }
 
             if (objNode == null) {
-                objNode = {id: objId, label: objId, weight: 1, type: 'node'};
+                objNode = { id: objId, label: objId, weight: 1, type: 'node' };
                 // If the predicate is rdf:type, the node is an OWL Class
                 // Then the domain is an instance
-                if (predNode.label === 'rdf:type' || predNode.label === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type') {
+                if (
+                    predNode.label === 'rdf:type' ||
+                    predNode.label === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+                ) {
                     objNode.owlClass = true;
                     subjNode.instance = true;
                 }
@@ -374,11 +390,10 @@ export class SparqlForceComponent implements OnInit, OnChanges {
 
             const blankLabel = '';
 
-            graph.links.push({source: subjNode, target: predNode, predicate: blankLabel, weight: 1});
-            graph.links.push({source: predNode, target: objNode, predicate: blankLabel, weight: 1});
+            graph.links.push({ source: subjNode, target: predNode, predicate: blankLabel, weight: 1 });
+            graph.links.push({ source: predNode, target: objNode, predicate: blankLabel, weight: 1 });
 
-            graph.triples.push({s: subjNode, p: predNode, o: objNode});
-
+            graph.triples.push({ s: subjNode, p: predNode, o: objNode });
         });
 
         return graph;
@@ -388,23 +403,21 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         // ParseTriples
         const parser = N3.Parser();
         const jsonTriples = [];
-        return new Promise( (resolve, reject) => {
-                parser.parse(triples, (err, triple, prefixValues) => {
-                    if (triple) {
-                        jsonTriples.push(triple);
-                    } else {
-                        resolve({triples: jsonTriples, prefixes: prefixValues});
-                    }
-                    if (err) {
-                        reject(err);
-                    }
-                });
-            }
-        );
+        return new Promise((resolve, reject) => {
+            parser.parse(triples, (err, triple, prefixValues) => {
+                if (triple) {
+                    jsonTriples.push(triple);
+                } else {
+                    resolve({ triples: jsonTriples, prefixes: prefixValues });
+                }
+                if (err) {
+                    reject(err);
+                }
+            });
+        });
     }
 
     private _abbreviateTriples(data) {
-
         const prefixes = data.prefixes;
         const triples = [];
 
@@ -421,7 +434,6 @@ export class SparqlForceComponent implements OnInit, OnChanges {
                 });
             }
             return newVal;
-
         }
 
         _.each(data.triples, d => {
@@ -429,13 +441,18 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             let p = d.predicate;
             let o = d.object;
 
-            if (abbreviate(s) != null) { s = abbreviate(s); }
-            if (abbreviate(p) != null) { p = abbreviate(p); }
-            if (abbreviate(o) != null) { o = abbreviate(o); }
-            triples.push({subject: s, predicate: p, object: o});
+            if (abbreviate(s) != null) {
+                s = abbreviate(s);
+            }
+            if (abbreviate(p) != null) {
+                p = abbreviate(p);
+            }
+            if (abbreviate(o) != null) {
+                o = abbreviate(o);
+            }
+            triples.push({ subject: s, predicate: p, object: o });
         });
         console.log(triples);
         return triples;
     }
-
 }

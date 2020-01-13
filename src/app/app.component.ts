@@ -15,7 +15,6 @@ import { SPARQLService } from './services/sparql.service';
     styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-
     private queryResult;
     private resultFieldExpanded = false;
     public tabIndex: number;
@@ -61,7 +60,6 @@ export class AppComponent implements OnInit {
     ) {}
 
     ngOnInit() {
-
         this.route.queryParams.subscribe(map => {
             // If a tab is specified, use this. Else default to first tab
             this.tabIndex = map.tab ? parseInt(map.tab, 10) : 0;
@@ -70,7 +68,7 @@ export class AppComponent implements OnInit {
             this.localStore = map.local === 0 ? false : true;
 
             // Get tab titles
-            this.dataService.getTabTitles().subscribe(res => this.tabTitles = res);
+            this.dataService.getTabTitles().subscribe(res => (this.tabTitles = res));
 
             // Get project data
             this.dataService.getProjectData().subscribe(res => {
@@ -83,8 +81,8 @@ export class AppComponent implements OnInit {
         });
 
         // Inject shared services
-        this.dataService.loadingStatus.subscribe(loading => this.loading = loading);
-        this.dataService.loadingMessage.subscribe(msg => this.loadingMessage = msg);
+        this.dataService.loadingStatus.subscribe(loading => (this.loading = loading));
+        this.dataService.loadingMessage.subscribe(msg => (this.loadingMessage = msg));
     }
 
     changeMsg() {
@@ -95,14 +93,14 @@ export class AppComponent implements OnInit {
         let query = this.data.query;
         const data = this.data.triples;
 
-        if (!data) { return; }
+        if (!data) {
+            return;
+        }
 
         // If no prefix is defined in the query, get it from the turtle file
         if (query.toLowerCase().indexOf('prefix') === -1) {
-
             query = this.queryService.appendPrefixesToQuery(query, data);
             this.data.query = query;
-
         }
 
         // Get the query type
@@ -114,7 +112,6 @@ export class AppComponent implements OnInit {
         } else {
             this.queryTriplestore(query);
         }
-
     }
 
     log(ev) {
@@ -122,20 +119,19 @@ export class AppComponent implements OnInit {
     }
 
     async queryLocalstore(query, data) {
-
         if (this.reasoning) {
-
             // Show loader
             this.dataService.setLoadingMessage('Performing query using Hylar');
             this.dataService.setLoaderStatus(true);
 
             // Query Hylar based endpoint
-            this.queryService.doHylarQuery(query, data)
-                .subscribe(res => {
+            this.queryService.doHylarQuery(query, data).subscribe(
+                res => {
                     this.queryResult = res;
                     this.resultFieldExpanded = true;
                     this.dataService.setLoaderStatus(false);
-                }, err => {
+                },
+                err => {
                     this.dataService.setLoaderStatus(false);
                     this.queryResult = '';
                     if (err.indexOf('undefined') !== -1) {
@@ -144,10 +140,9 @@ export class AppComponent implements OnInit {
                     if (err.message && err.name) {
                         this.showSnackbar(err.name + ': ' + err.message, 10000);
                     }
-                });
-
+                }
+            );
         } else {
-
             // Perform query with client based rdfstore
             try {
                 const res = await this.queryService.doQuery(query, data);
@@ -155,7 +150,6 @@ export class AppComponent implements OnInit {
                 this.queryResult = res;
                 this.resultFieldExpanded = true;
             } catch (err) {
-
                 this.queryResult = '';
                 if (err.message && err.name) {
                     if (err.indexOf('undefined') !== -1) {
@@ -164,12 +158,10 @@ export class AppComponent implements OnInit {
                     this.showSnackbar(err.name + ': ' + err.message, 10000);
                 }
             }
-
         }
     }
 
     async queryTriplestore(query) {
-
         const t1 = Date.now();
 
         // Perform query
@@ -196,8 +188,6 @@ export class AppComponent implements OnInit {
         const dt = Date.now() - t1;
         this.queryTime = dt;
 
-
-
         // POST PROCESSING
 
         // If it's a select query, just return the result as it is
@@ -208,7 +198,6 @@ export class AppComponent implements OnInit {
 
         // If it is a construct query, process data
         if (this.queryType === 'construct') {
-
             const q = 'CONSTRUCT WHERE {?s ?p ?o}';
 
             let processed;
@@ -227,23 +216,21 @@ export class AppComponent implements OnInit {
 
             this.queryResult = processed;
             this.resultFieldExpanded = true;
-
         }
 
         // Support for COUNT and DESCRIBE + SHOW RAW
-
     }
 
     resetTriples() {
-        this.dataService.getSingle(this.tabIndex)
-            .subscribe(x => {
-                this.data.triples = x.triples;
-            });
+        this.dataService.getSingle(this.tabIndex).subscribe(x => {
+            this.data.triples = x.triples;
+        });
     }
 
     toggleStore() {
         this.localStore = this.localStore === false ? true : false;
-        this.toggleTooltip = this.toggleTooltip === 'Switch to datasets' ? 'Switch to triplestore' : 'Switch to datasets';
+        this.toggleTooltip =
+            this.toggleTooltip === 'Switch to datasets' ? 'Switch to triplestore' : 'Switch to datasets';
     }
 
     changeTab(i) {
@@ -251,24 +238,22 @@ export class AppComponent implements OnInit {
             console.log('Add new dataset');
         } else {
             this.tabIndex = i;
-            this.dataService.getSingle(i)
-                .subscribe(x => {
-                    this.data = x;
+            this.dataService.getSingle(i).subscribe(x => {
+                this.data = x;
 
-                    // Use reasoning if the JSON says so
-                    this.reasoning = x.reasoning ? x.reasoning : false;
+                // Use reasoning if the JSON says so
+                this.reasoning = x.reasoning ? x.reasoning : false;
 
-                    // Hide triples, query and result tab if setting textOnly is true
-                    this.textOnly = x.textOnly ? x.textOnly : false;
+                // Hide triples, query and result tab if setting textOnly is true
+                this.textOnly = x.textOnly ? x.textOnly : false;
 
-                    // Perform the query if the tab has a query assigned
-                    if (this.data.query) {
-                        this.doQuery();
-                    } else {
-                        this.queryResult = null;
-                    }
-                });
-
+                // Perform the query if the tab has a query assigned
+                if (this.data.query) {
+                    this.doQuery();
+                } else {
+                    this.queryResult = null;
+                }
+            });
         }
     }
 
@@ -292,7 +277,9 @@ export class AppComponent implements OnInit {
     }
 
     showSnackbar(message, durationValue?) {
-        if (!durationValue) { durationValue = 10000; }
+        if (!durationValue) {
+            durationValue = 10000;
+        }
         this.snackBar.open(message, 'close', {
             duration: durationValue
         });
@@ -309,5 +296,4 @@ export class AppComponent implements OnInit {
     update(ev) {
         console.log(ev);
     }
-
 }

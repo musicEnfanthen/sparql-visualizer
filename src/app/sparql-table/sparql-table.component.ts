@@ -1,4 +1,14 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, EventEmitter, Output, ViewChild, AfterViewInit } from '@angular/core';
+import {
+    Component,
+    Input,
+    OnInit,
+    OnChanges,
+    SimpleChanges,
+    EventEmitter,
+    Output,
+    ViewChild,
+    AfterViewInit
+} from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -18,9 +28,7 @@ import { DataService } from '../services/data.service';
     styleUrls: ['sparql-table.component.css'],
     templateUrl: 'sparql-table.component.html'
 })
-
 export class SparqlTableComponent implements OnChanges, OnInit, AfterViewInit {
-
     @Input() queryResult: object;
     @Input() maxHeight;
     @Input() queryTime: object;
@@ -29,18 +37,13 @@ export class SparqlTableComponent implements OnChanges, OnInit, AfterViewInit {
     // Paginator
     @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
 
-
     displayedColumns;
     dataSource;
     resultLength: number;
     prefixes: object;
     showDatatypes = false;
 
-    constructor(
-        private ds: DataService,
-        private snackBar: MatSnackBar,
-        private dialog: MatDialog
-    ) {}
+    constructor(private ds: DataService, private snackBar: MatSnackBar, private dialog: MatDialog) {}
 
     ngOnInit() {
         this.ds.getPrefixes().subscribe(res => {
@@ -60,8 +63,11 @@ export class SparqlTableComponent implements OnChanges, OnInit, AfterViewInit {
         let data: Element[];
 
         // If a result has been returned
-        if (changes.queryResult.currentValue && changes.queryResult.currentValue.head && changes.queryResult.currentValue.head.vars.length > 0) {
-
+        if (
+            changes.queryResult.currentValue &&
+            changes.queryResult.currentValue.head &&
+            changes.queryResult.currentValue.head.vars.length > 0
+        ) {
             // Extract columns
             this.displayedColumns = changes.queryResult.currentValue.head.vars;
 
@@ -93,7 +99,6 @@ export class SparqlTableComponent implements OnChanges, OnInit, AfterViewInit {
     }
 
     showExportCsv() {
-
         const dialogRef = this.dialog.open(SelectDialogComponent, {
             height: '300px',
             width: '500px',
@@ -101,17 +106,16 @@ export class SparqlTableComponent implements OnChanges, OnInit, AfterViewInit {
                 title: 'Export to CSV',
                 description: 'Please choose seperator',
                 selectText: 'seperator',
-                list: [',', ';']}
+                list: [',', ';']
+            }
         });
 
         dialogRef.afterClosed().subscribe(separator => {
             this.exportCsv(separator);
         });
-
     }
 
     exportCsv(separator) {
-
         // If ; used as separator, comma is used as decimal separator
         const decimalSeparator = separator === ';' ? ',' : '.';
 
@@ -135,10 +139,11 @@ export class SparqlTableComponent implements OnChanges, OnInit, AfterViewInit {
     }
 
     showSnackbar(message, durationValue?) {
-        if (!durationValue) { durationValue = 2000; }
+        if (!durationValue) {
+            durationValue = 2000;
+        }
         this.snackBar.open(message, 'close', {
-            duration: durationValue,
+            duration: durationValue
         });
     }
-
 }

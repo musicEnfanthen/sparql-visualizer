@@ -6,14 +6,13 @@ import { StardogService } from './stardog.service';
 import { QueryService } from './query.service';
 
 export interface ProjectSettings {
-  endpoint: string;
-  username?: string;
-  password?: string;
+    endpoint: string;
+    username?: string;
+    password?: string;
 }
 
 @Injectable()
 export class SPARQLService {
-
     public endpoint: string;
     public updateEndpoint: string;
     public dataEndpoint: string;
@@ -37,7 +36,6 @@ export class SPARQLService {
     }
 
     public getQuery(query, reasoning?, mimeType?): Promise<any> {
-
         this.getTriplestoreSettings();
 
         // Escape plus
@@ -50,9 +48,9 @@ export class SPARQLService {
             const queryType = this.queryService.getQuerytype(query);
             if (queryType === 'construct') {
                 options.responseType = 'text';
-                options.headers = {'Accept': 'text/turtle'};
+                options.headers = { Accept: 'text/turtle' };
             } else {
-                options.headers = {'Accept': 'application/sparql-results+json'};
+                options.headers = { Accept: 'application/sparql-results+json' };
             }
         }
 
@@ -70,7 +68,6 @@ export class SPARQLService {
     }
 
     public updateQuery(query): Promise<any> {
-
         this.getTriplestoreSettings();
 
         // Escape plus
@@ -81,20 +78,20 @@ export class SPARQLService {
         }
 
         // Default behavior is Fuseki
-        const headers: any = {'Authorization': this.auth, 'Content-Type': 'application/x-www-form-urlencoded'};
-        const options: any = {observe: 'response', responseType: 'text', headers};
+        const headers: any = { Authorization: this.auth, 'Content-Type': 'application/x-www-form-urlencoded' };
+        const options: any = { observe: 'response', responseType: 'text', headers };
 
         const body = `update=${query}`;
 
         return this.http.post(this.updateEndpoint, body, options).toPromise();
-
     }
 
     public loadTriples(triples, graphURI?): Promise<any> {
-
         this.getTriplestoreSettings();
 
-        if (!this.dataEndpoint) { return new Promise((resolve, reject) => reject('No data endpoint provided!')); }
+        if (!this.dataEndpoint) {
+            return new Promise((resolve, reject) => reject('No data endpoint provided!'));
+        }
 
         if (this.triplestore === 'stardog') {
             return this.stardogService.loadTriples(triples, graphURI).toPromise();
@@ -111,15 +108,15 @@ export class SPARQLService {
         };
 
         // If a named graph is specified, set this parameter
-        if (graphURI) { options.params = {graph: graphURI}; }
+        if (graphURI) {
+            options.params = { graph: graphURI };
+        }
 
         return this.http.post(this.dataEndpoint, triples, options).toPromise();
-
     }
 
     // Download triples from some external resource
     getTriplesFromURL(url): Promise<any> {
-
         const options = {
             responseType: 'text' as 'text', // responsetype is necessary as Angular tries to convert to JSON if not set
             observe: 'response' as 'response',
@@ -130,7 +127,6 @@ export class SPARQLService {
 
         return this.http.get(url, options).toPromise();
     }
-
 
     /**
      * QUERIES
@@ -155,7 +151,5 @@ export class SPARQLService {
             const x: any = obj;
             return x.g.value;
         });
-
     }
-
 }

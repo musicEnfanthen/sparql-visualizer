@@ -13,9 +13,7 @@ import { DataService } from '../services/data.service';
     styleUrls: ['query-field.component.css'],
     templateUrl: 'query-field.component.html'
 })
-
 export class QueryFieldComponent {
-
     @Input() reasoning = false;
     @Input() query: string;
     @Input() tabIndex: number;
@@ -32,9 +30,7 @@ export class QueryFieldComponent {
         mode: 'application/sparql-query'
     };
 
-    constructor(
-        private dataService: DataService
-    ) {}
+    constructor(private dataService: DataService) {}
 
     onChange(ev) {
         this.updatedQuery.emit(ev);
@@ -45,11 +41,9 @@ export class QueryFieldComponent {
     }
 
     resetQuery() {
-        this.dataService.getSingle(this.tabIndex)
-            .subscribe(x => {
-                this.query = x.query;
-                this.reasoning = x.reasoning;
-            });
+        this.dataService.getSingle(this.tabIndex).subscribe(x => {
+            this.query = x.query;
+            this.reasoning = x.reasoning;
+        });
     }
-
 }
