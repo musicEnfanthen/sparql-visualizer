@@ -1,24 +1,25 @@
 import { Component, Input, EventEmitter, Output } from '@angular/core';
 
-// TODO: reactivate codemirror
-// import 'codemirror/mode/go/go';
-// import 'codemirror/mode/sparql/sparql';
-
 import { DataService } from '../services/data.service';
+
+import 'codemirror/mode/go/go';
+import 'codemirror/mode/sparql/sparql';
 
 /**
  * @title Table with filtering
  */
 @Component({
     selector: 'app-query-field',
-    styleUrls: ['query-field.component.css'],
-    templateUrl: 'query-field.component.html'
+    templateUrl: 'query-field.component.html',
+    styleUrls: ['query-field.component.css']
 })
 export class QueryFieldComponent {
+
     @Input() reasoning = false;
     @Input() query: string;
     @Input() tabIndex: number;
     @Input() localStore: boolean;
+
     @Output() updatedQuery = new EventEmitter<string>();
     @Output() doQuery = new EventEmitter<void>();
     @Output() setReasoning = new EventEmitter<boolean>();

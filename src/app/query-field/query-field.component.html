@@ -22,20 +22,22 @@
             </textarea>
         </mat-form-field> -->
 
-        <!-- TODO: reactivate codemirror
         <codemirror
             [(ngModel)]="query"
             (change)="onChange(query)"
             [config]="cmConfig">
         </codemirror>
-        -->
 
         <div class="full-width" fxLayout="row">
-            <button mat-raised-button color="primary" (click)="fireQuery()">
-                Query <mat-icon>play_circle_outline</mat-icon>
-            </button>
+            <div fxLayout="row">
+                <button mat-raised-button color="primary" (click)="fireQuery()">
+                    Query <mat-icon>play_circle_outline</mat-icon>
+                </button>
 
-            <button mat-raised-button (click)="resetQuery()">Reset <mat-icon>cached</mat-icon></button>
+                <button mat-raised-button (click)="resetQuery()">
+                    Reset <mat-icon>cached</mat-icon>
+                </button>
+            </div>
 
             <div fxFlex="grow"></div>
             <mat-slide-toggle

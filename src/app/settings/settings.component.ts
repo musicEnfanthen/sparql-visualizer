@@ -5,11 +5,11 @@ import { MatDialog } from '@angular/material/dialog';
 // Services
 import { ProjectSettingsService } from '../services/project-settings.service';
 import { DataService } from '../services/data.service';
+import { SPARQLService } from '../services/sparql.service';
 
 // Dialogs
 import { InputDialogComponent } from '../dialogs/input-dialog.component';
 import { SelectDialogComponent } from '../dialogs/select-dialog.component';
-import { SPARQLService } from '../services/sparql.service';
 
 export interface ProjectSettings {
     endpoint: string;
@@ -48,6 +48,9 @@ export class SettingsComponent implements OnInit, OnChanges {
     ngOnInit() {
         // Get data from local storage
         const data = this.projectSettingsService.getTriplestoreSettings();
+
+        console.log('SettingsComponent# data', data);
+
         if (data) {
             this.projectSettings = data;
         } else {
@@ -58,6 +61,8 @@ export class SettingsComponent implements OnInit, OnChanges {
             this.projectSettings.username = 'admin'; // default
             this.projectSettings.password = 'admin'; // default
         }
+
+        console.log('SettingsComponent# projectSettings', this.projectSettings);
 
         // Inject shared services
         this.dataService.loadingStatus.subscribe(loading => (this.loading = loading));

@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Title } from '@angular/platform-browser'; // To override title
+
 import { QueryService } from './services/query.service';
 import { DataService, ProjectData, TabsData } from './services/data.service';
 import { SPARQLService } from './services/sparql.service';
 
-// TODO: reactivate codemirror
-// import 'codemirror/mode/turtle/turtle';
+import 'codemirror/mode/turtle/turtle';
 
 @Component({
     selector: 'app-root',
@@ -15,6 +15,7 @@ import { SPARQLService } from './services/sparql.service';
     styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
+
     private queryResult;
     private resultFieldExpanded = false;
     public tabIndex: number;
@@ -65,13 +66,17 @@ export class AppComponent implements OnInit {
             this.tabIndex = map.tab ? parseInt(map.tab, 10) : 0;
 
             // If triplestore mode is defined, use this
-            this.localStore = map.local === 0 ? false : true;
+            this.localStore = map.local !== 0;
 
             // Get tab titles
-            this.dataService.getTabTitles().subscribe(res => (this.tabTitles = res));
+            this.dataService.getTabTitles().subscribe(res => {
+                console.log('AppComponent# tabtitle: ', res);
+                this.tabTitles = res;
+            });
 
             // Get project data
             this.dataService.getProjectData().subscribe(res => {
+                console.log('AppComponent# projectdata: ', res);
                 this.projectData = res;
                 // Change page title
                 this.titleService.setTitle(this.projectData.title);
@@ -115,7 +120,7 @@ export class AppComponent implements OnInit {
     }
 
     log(ev) {
-        console.log(ev);
+        console.log('AppComponent# log', ev);
     }
 
     async queryLocalstore(query, data) {
@@ -147,7 +152,7 @@ export class AppComponent implements OnInit {
         } else {
             // Perform query with client based rdfstore
             try {
-                this.queryResult = await this.queryService.doRDFJSLibQuery(query, data);
+                this.queryResult = await this.queryService.doQuery(query, data);
                 this.resultFieldExpanded = true;
             } catch (err) {
                 this.queryResult = '';
@@ -237,8 +242,13 @@ export class AppComponent implements OnInit {
             console.log('Add new dataset');
         } else {
             this.tabIndex = i;
+
+            console.log('AppComponent# changeTab', this.tabIndex);
+
             this.dataService.getSingle(i).subscribe(x => {
                 this.data = x;
+
+                console.log('AppComponent# data', this.data);
 
                 // Use reasoning if the JSON says so
                 this.reasoning = x.reasoning ? x.reasoning : false;
@@ -268,11 +278,11 @@ export class AppComponent implements OnInit {
     }
 
     toggleView(ev) {
-        console.log(ev);
+        console.log('AppComponent# toggleView', ev);
     }
 
     graphClick(URI) {
-        console.log(URI);
+        console.log('AppComponent# graphClick URI', URI);
     }
 
     showSnackbar(message, durationValue?) {
@@ -293,6 +303,6 @@ export class AppComponent implements OnInit {
     }
 
     update(ev) {
-        console.log(ev);
+        console.log('AppComponent# update', ev);
     }
 }

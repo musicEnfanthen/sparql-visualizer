@@ -73,5 +73,6 @@ window.Buffer = window.Buffer || require('buffer').Buffer;
 // workaround for Uncaught ReferenceError: process is not defined
 // cf. https://github.com/algolia/algoliasearch-client-javascript/issues/691
 (window as any).process = {
-    env: { DEBUG: undefined }
+    env: { DEBUG: undefined },
+    version: ''
 };

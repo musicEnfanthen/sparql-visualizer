@@ -31,7 +31,7 @@
 
                 <!-- Select -->
                 <mat-form-field class="full-width">
-                    <mat-select placeholder="Dataset" (change)="changeTab($event.value)" [value]="tabIndex">
+                    <mat-select placeholder="Dataset" (selectionChange)="changeTab($event.value)" [value]="tabIndex">
                         <!-- <mat-option value="new">Add set...</mat-option> -->
                         <mat-option *ngFor="let title of tabTitles; let i = index" [value]="i">
                             {{ title }}
@@ -137,12 +137,10 @@
                         </mat-expansion-panel-header>
 
                         <div>
-                            <!--  TODO: reactivate codemirror
                             <codemirror
                                 [(ngModel)]="data.triples"
                                 [config]="cmConfig">
                             </codemirror>
-                            -->
 
                             <div class="full-width" fxLayout="row">
                                 <button mat-raised-button color="primary" (click)="doQuery()">
@@ -237,12 +235,10 @@
                     </mat-panel-title>
                 </mat-expansion-panel-header>
                 <div>
-                    <!-- TODO: replace
                     <codemirror
                         [(ngModel)]="data.triples"
                         [config]="cmConfig">
                     </codemirror>
-                    -->
 
                     <div class="full-width" fxLayout="row">
                         <button mat-raised-button color="primary" (click)="doQuery()">

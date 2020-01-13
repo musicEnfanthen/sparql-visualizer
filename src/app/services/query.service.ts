@@ -95,11 +95,11 @@ export class QueryService {
 
         this.store = rdflib.graph();
 
-        console.log(queryType);
-        console.log(query);
-        console.log(triples);
-        console.log(mimeType);
-        console.log(this.store);
+        console.log('QueryService# queryType', queryType);
+        console.log('QueryService# query', query);
+        console.log('QueryService# triples', triples);
+        console.log('QueryService# mimeType', mimeType);
+        console.log('QueryService# store', this.store);
     }
 
     doQuery(query, triples, mimeType?) {

@@ -25,11 +25,16 @@
                             "src/assets"
                         ],
                         "styles": [
-                            "src/styles.css"
+                            "src/styles.css",
+                            "node_modules/codemirror/lib/codemirror.css"
                         ],
                         "scripts": [
                             "node_modules/rdflib/dist/rdflib.min.js",
-                            "node_modules/rdfstore/dist/rdfstore_min.js"
+                            "node_modules/rdfstore/dist/rdfstore_min.js",
+                            "node_modules/codemirror/lib/codemirror.js",
+                            "node_modules/codemirror/mode/turtle/turtle.js",
+                            "node_modules/codemirror/mode/sparql/sparql.js",
+                            "node_modules/codemirror/mode/go/go.js"
                         ]
                     },
                     "configurations": {

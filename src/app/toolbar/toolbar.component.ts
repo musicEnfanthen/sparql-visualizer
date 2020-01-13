@@ -13,9 +13,12 @@ import { VideoDialogComponent } from '../dialogs/video-dialog.component';
     styleUrls: ['./toolbar.component.css']
 })
 export class ToolbarComponent {
+
     @Input() title: string;
     @Input() creator: string;
+
     @Output() toggleFullScreen = new EventEmitter<boolean>();
+
     public fullScreen = false;
 
     videos = [
