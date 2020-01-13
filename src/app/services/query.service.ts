@@ -3,10 +3,12 @@ import { HttpClient } from '@angular/common/http';
 
 import { from as observableFrom } from 'rxjs';
 
-import * as Hylar from 'hylar';
+// TODO: readd Hylar
+// import * as Hylar from 'hylar';
 import * as _ from 'lodash';
 import * as N3 from 'n3';
-import * as rdfstore from 'rdfstore';
+// import * as rdfstore from 'rdfstore';
+import * as rdflib from 'rdflib';
 
 export interface Qres {
     actions?;
@@ -37,6 +39,7 @@ export class QueryService {
 
     constructor(public http: HttpClient) {}
 
+    /* TODO: readd Hylar
     doHylarQuery(query, triples) {
         console.log('Do Hylar query');
 
@@ -79,6 +82,24 @@ export class QueryService {
         };
 
         return observableFrom(saturateAndQuery(query, triples));
+    }
+    */
+
+    doRDFJSLibQuery(query, triples, mimeType?) {
+        if (!mimeType) {
+            mimeType = 'text/turtle';
+        }
+
+        // Get query type
+        const queryType = this.getQuerytype(query);
+
+        this.store = rdflib.graph();
+
+        console.log(queryType);
+        console.log(query);
+        console.log(triples);
+        console.log(mimeType);
+        console.log(this.store);
     }
 
     doQuery(query, triples, mimeType?) {
@@ -294,12 +315,14 @@ export class QueryService {
 
     private _createStore() {
         return new Promise((resolve, reject) => {
+            /*
             rdfstore.create((err, store) => {
                 if (err) {
                     reject(err);
                 }
                 resolve(store);
             });
+             */
         });
     }
 

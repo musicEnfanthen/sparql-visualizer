@@ -1,7 +1,8 @@
 import { Component, Input, EventEmitter, Output } from '@angular/core';
 
-import 'codemirror/mode/go/go';
-import 'codemirror/mode/sparql/sparql';
+// TODO: reactivate codemirror
+// import 'codemirror/mode/go/go';
+// import 'codemirror/mode/sparql/sparql';
 
 import { DataService } from '../services/data.service';
 

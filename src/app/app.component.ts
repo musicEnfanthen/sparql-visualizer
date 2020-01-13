@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Title } from '@angular/platform-browser'; // To override title
-
-import 'codemirror/mode/turtle/turtle';
-
 import { QueryService } from './services/query.service';
-import { DataService, TabsData, ProjectData } from './services/data.service';
+import { DataService, ProjectData, TabsData } from './services/data.service';
 import { SPARQLService } from './services/sparql.service';
+
+// TODO: reactivate codemirror
+// import 'codemirror/mode/turtle/turtle';
 
 @Component({
     selector: 'app-root',
@@ -124,6 +124,7 @@ export class AppComponent implements OnInit {
             this.dataService.setLoadingMessage('Performing query using Hylar');
             this.dataService.setLoaderStatus(true);
 
+            /* TODO: readd Hylar
             // Query Hylar based endpoint
             this.queryService.doHylarQuery(query, data).subscribe(
                 res => {
@@ -140,14 +141,13 @@ export class AppComponent implements OnInit {
                     if (err.message && err.name) {
                         this.showSnackbar(err.name + ': ' + err.message, 10000);
                     }
-                }
+               }
             );
+            */
         } else {
             // Perform query with client based rdfstore
             try {
-                const res = await this.queryService.doQuery(query, data);
-
-                this.queryResult = res;
+                this.queryResult = await this.queryService.doRDFJSLibQuery(query, data);
                 this.resultFieldExpanded = true;
             } catch (err) {
                 this.queryResult = '';
@@ -185,8 +185,7 @@ export class AppComponent implements OnInit {
         }
 
         // Capture query time
-        const dt = Date.now() - t1;
-        this.queryTime = dt;
+        this.queryTime = Date.now() - t1;
 
         // POST PROCESSING
 

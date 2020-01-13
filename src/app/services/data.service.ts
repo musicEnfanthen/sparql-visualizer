@@ -1,15 +1,11 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { DomSanitizer } from '@angular/platform-browser';
 
 import { mergeMap, map } from 'rxjs/operators';
 import { Observable, BehaviorSubject } from 'rxjs';
 
-import * as existsFile from 'exists-file';
 import * as _ from 'lodash';
-import * as N3 from 'n3';
-import * as rdfstore from 'rdfstore';
 
 // services
 import { ProjectSettingsService } from './project-settings.service';
@@ -38,8 +34,7 @@ export class DataService {
     constructor(
         public http: HttpClient,
         private route: ActivatedRoute,
-        private projectSettingsService: ProjectSettingsService,
-        private sanitizer: DomSanitizer
+        private projectSettingsService: ProjectSettingsService
     ) {}
 
     private filePath = './assets/data.json';
@@ -56,8 +51,9 @@ export class DataService {
         // Get URL parameters
         return this.route.queryParams.pipe(
             map(x => {
+                let path = this.filePath;
+
                 // If a file path is specified, use this instead of the default
-                let path = './assets/data.json';
                 if (x.file) {
                     // convert improperly formatted dropbox link
                     path = x.file.replace('www.dropbox', 'dl.dropboxusercontent');
