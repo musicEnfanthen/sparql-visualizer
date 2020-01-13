@@ -1,55 +1,51 @@
 <mat-toolbar fxLayoutAlign="space-around center">
-
     <!-- Icons -->
     <span class="logo-group">
-        <img class="logo" style="width:50px;" src="./assets/niras-logo.svg">
-        <img class="logo" style="width:20px;" src="./assets/DTU-logo.svg">
+        <img class="logo" style="width:50px;" src="./assets/niras-logo.svg" />
+        <img class="logo" style="width:20px;" src="./assets/DTU-logo.svg" />
     </span>
 
-    <span class="title">SPARQL-visualizer | {{title}}</span>
+    <span class="title">SPARQL-visualizer | {{ title }}</span>
     <span fxFlex="grow"></span>
-    <span *ngIf="creator" class="creator">
-      By {{creator}}
-    </span>
+    <span *ngIf="creator" class="creator"> By {{ creator }} </span>
 
     <!-- Menu -->
     <button mat-icon-button [matMenuTriggerFor]="menu">
-      <mat-icon>more_vert</mat-icon>
+        <mat-icon>more_vert</mat-icon>
     </button>
     <mat-menu #menu="matMenu">
-      <button mat-menu-item (click)="fullScreenToggle()">
-        <div *ngIf="!fullScreen">
-          <mat-icon>fullscreen</mat-icon>
-          <span>Switch to fullscreen</span>
-        </div>
-        <div *ngIf="fullScreen">
-          <mat-icon>fullscreen_exit</mat-icon>
-          <span>Exit fullscreen mode</span>
-        </div>
-      </button>
-      <button mat-menu-item (click)="downloadApp()">
-        <mat-icon>file_download</mat-icon>
-        <span>Download App</span>
-      </button>
-      <button mat-menu-item (click)="showSettings()">
-        <mat-icon>settings</mat-icon>
-        <span>Settings</span>
-      </button>
-      <button mat-menu-item [matMenuTriggerFor]="submenu">
-        <mat-icon>school</mat-icon>
-        <span>Tutorials</span>
-      </button>
-      <button mat-menu-item (click)="showAbout()">
-        <mat-icon>info_outline</mat-icon>
-        <span>About</span>
-      </button>
+        <button mat-menu-item (click)="fullScreenToggle()">
+            <div *ngIf="!fullScreen">
+                <mat-icon>fullscreen</mat-icon>
+                <span>Switch to fullscreen</span>
+            </div>
+            <div *ngIf="fullScreen">
+                <mat-icon>fullscreen_exit</mat-icon>
+                <span>Exit fullscreen mode</span>
+            </div>
+        </button>
+        <button mat-menu-item (click)="downloadApp()">
+            <mat-icon>file_download</mat-icon>
+            <span>Download App</span>
+        </button>
+        <button mat-menu-item (click)="showSettings()">
+            <mat-icon>settings</mat-icon>
+            <span>Settings</span>
+        </button>
+        <button mat-menu-item [matMenuTriggerFor]="submenu">
+            <mat-icon>school</mat-icon>
+            <span>Tutorials</span>
+        </button>
+        <button mat-menu-item (click)="showAbout()">
+            <mat-icon>info_outline</mat-icon>
+            <span>About</span>
+        </button>
     </mat-menu>
 
     <!-- sub-menu tutorials -->
     <mat-menu #submenu="matMenu">
-      <button mat-menu-item *ngFor="let video of videos" (click)="showVideo(video.id)">
-        <span>{{video.title}}</span>
-      </button>
+        <button mat-menu-item *ngFor="let video of videos" (click)="showVideo(video.id)">
+            <span>{{ video.title }}</span>
+        </button>
     </mat-menu>
-    
 </mat-toolbar>

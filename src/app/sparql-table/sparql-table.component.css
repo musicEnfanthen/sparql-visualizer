@@ -17,13 +17,14 @@
     justify-content: space-between;
     border-bottom-style: solid;
     border-bottom-color: rgba(0, 0, 0, 0.12);
-    font-family: Roboto,Helvetica Neue,sans-serif;
+    font-family: Roboto, Helvetica Neue, sans-serif;
 }
 
-.mat-cell, .mat-header-cell{
+.mat-cell,
+.mat-header-cell {
     position: relative;
     padding-right: 5px;
-    height:100%;
+    height: 100%;
 }
 
 .table-header > .mat-icon {
@@ -50,7 +51,7 @@
 #mat-checkbox-1 > label > span {
     font-size: 14px;
 }
-.cp{
+.cp {
     display: none;
     position: absolute;
     cursor: pointer;

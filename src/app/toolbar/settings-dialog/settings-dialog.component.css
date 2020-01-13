@@ -1,4 +1,4 @@
-.container{
+.container {
     position: relative;
     height: 100%;
     font-family: Roboto;
@@ -6,17 +6,17 @@
 .mat-dialog-content {
     min-height: 200px;
 }
-.mat-form-field{
+.mat-form-field {
     width: 100%;
 }
 p {
     font-size: 12px;
 }
-.mat-dialog-actions{
+.mat-dialog-actions {
     position: absolute;
     bottom: 0px;
     right: 0px;
 }
-.mat-form-field{
+.mat-form-field {
     margin-top: 5px;
 }

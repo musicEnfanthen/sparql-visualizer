@@ -5,18 +5,17 @@
         *ngIf="projectData"
         (toggleFullScreen)="fullScreen = $event"
         [title]="projectData.title"
-        [creator]="projectData.creator">
+        [creator]="projectData.creator"
+    >
     </app-visualizer-toolbar>
 </div>
 
 <!-- Regular page content -->
 <div *ngIf="!fullScreen" class="container-content">
     <div fxFlex fxLayout="row" fxLayout.sm="column" fxLayout.xs="column" fxLayoutAlign="space-around">
-
         <!-- Data tabs (tabs + description) -->
         <div *ngIf="!dataOnly" fxFlex="100%" fxFlex.md="40%" fxFlex.lg="40%" fxFlex.xl="40%">
             <mat-card class="mat-elevation-z2">
-
                 <p>
                     <span fxFlex="60%">Select dataset</span>
                     <span fxFlex="grow"></span>
@@ -24,7 +23,8 @@
                         *ngIf="triplestoreOption"
                         class="iconbutton"
                         [matTooltip]="toggleTooltip"
-                        (click)="toggleStore()">
+                        (click)="toggleStore()"
+                    >
                         swap_horiz
                     </mat-icon>
                 </p>
@@ -51,15 +51,14 @@
                         matTooltip="download JSON"
                         ngxClipboard
                         [cbContent]="data | json"
-                        (click)="showSnackbar('Copied JSON to clipboard', 2000)">
+                        (click)="showSnackbar('Copied JSON to clipboard', 2000)"
+                    >
                         file_download
                     </mat-icon>
                 </div>
-
             </mat-card>
 
             <mat-card class="mat-elevation-z2">
-
                 <div *ngIf="data">
                     <p>
                         <span fxFlex="60 %">Description</span>
@@ -70,27 +69,34 @@
                             *ngIf="!editDescription"
                             class="iconbutton smallicon"
                             matTooltip="edit description"
-                            (click)="editDescription = !editDescription">
+                            (click)="editDescription = !editDescription"
+                        >
                             edit
                         </mat-icon>
                         <mat-icon
                             *ngIf="editDescription"
                             class="iconbutton smallicon"
                             matTooltip="finish edit"
-                            (click)="saveDescription()">
+                            (click)="saveDescription()"
+                        >
                             check_circle
                         </mat-icon>
                         <mat-icon
                             *ngIf="editDescription"
                             class="iconbutton smallicon"
                             matTooltip="cancel edit"
-                            (click)="editDescription = !editDescription">
+                            (click)="editDescription = !editDescription"
+                        >
                             cancel
                         </mat-icon>
                     </p>
 
                     <!-- Description -->
-                    <span *ngIf="!editDescription" class="description" [innerHTML]="data.description | MarkdownToHtml"></span>
+                    <span
+                        *ngIf="!editDescription"
+                        class="description"
+                        [innerHTML]="data.description | MarkdownToHtml"
+                    ></span>
 
                     <!-- Edit description -->
                     <div *ngIf="editDescription">
@@ -103,22 +109,24 @@
                                 placeholder="Edit description"
                                 matTextareaAutosize
                                 matAutosizeMinRows="2"
-                                matAutosizeMaxRows="20">
+                                matAutosizeMaxRows="20"
+                            >
                             </textarea>
                         </mat-form-field>
-                        <a style="font-size: 12px" href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown cheatsheet</a>
+                        <a
+                            style="font-size: 12px"
+                            href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet"
+                            >Markdown cheatsheet</a
+                        >
                     </div>
                 </div>
-
             </mat-card>
         </div>
 
         <!-- Right tabs (triples, query, result) -->
         <!-- <div fxFlex="grow"></div> -->
         <div fxFlex="100%" fxFlex.md="55%" fxFlex.lg="55%" fxFlex.xl="55%">
-
             <div *ngIf="data">
-
                 <!-- Data -->
                 <mat-accordion *ngIf="!textOnly">
                     <mat-expansion-panel>
@@ -137,21 +145,15 @@
                             -->
 
                             <div class="full-width" fxLayout="row">
-                                <button
-                                    mat-raised-button
-                                    color="primary"
-                                    (click)="doQuery()">
+                                <button mat-raised-button color="primary" (click)="doQuery()">
                                     Update <mat-icon>play_circle_outline</mat-icon>
                                 </button>
 
-                                <button
-                                    mat-raised-button
-                                    (click)="resetTriples()">
+                                <button mat-raised-button (click)="resetTriples()">
                                     Reset <mat-icon>cached</mat-icon>
                                 </button>
                             </div>
                         </div>
-
                     </mat-expansion-panel>
                 </mat-accordion>
 
@@ -164,12 +166,12 @@
                     [localStore]="localStore"
                     (doQuery)="doQuery()"
                     (setReasoning)="reasoning = $event"
-                    (updatedQuery)="data.query = $event">
+                    (updatedQuery)="data.query = $event"
+                >
                 </app-query-field>
 
                 <!-- Result -->
                 <div *ngIf="queryResult">
-
                     <!-- CONSTRUCT -->
                     <mat-accordion *ngIf="queryType == 'construct'">
                         <mat-expansion-panel [expanded]="resultFieldExpanded">
@@ -180,7 +182,13 @@
                             </mat-expansion-panel-header>
 
                             <!-- Data visualization -->
-                            <app-sparql-force class="full-width" *ngIf="queryResult" (clickedURI)="graphClick($event)" [data]="queryResult" [height]="500"></app-sparql-force>
+                            <app-sparql-force
+                                class="full-width"
+                                *ngIf="queryResult"
+                                (clickedURI)="graphClick($event)"
+                                [data]="queryResult"
+                                [height]="500"
+                            ></app-sparql-force>
                             <span *ngIf="!queryResult">No result to show</span>
                         </mat-expansion-panel>
                     </mat-accordion>
@@ -199,7 +207,8 @@
                                 maxHeight="500px"
                                 [queryResult]="queryResult"
                                 [queryTime]="queryTime"
-                                (clickedURI)="tableClick($event)">
+                                (clickedURI)="tableClick($event)"
+                            >
                             </app-sparql-table>
                             <span *ngIf="!queryResult">No result to show</span>
                         </mat-expansion-panel>
@@ -210,19 +219,16 @@
 
         <div *ngIf="loading" class="loading-spinner">
             <mat-spinner></mat-spinner>
-            <p *ngIf="loadingMessage">{{loadingMessage}}</p>
+            <p *ngIf="loadingMessage">{{ loadingMessage }}</p>
         </div>
-
     </div>
 </div>
 
 <!-- Full screen mode -->
 <div *ngIf="fullScreen">
-
     <div class="fullscreen-draggable" ngDraggable [handle]="DragArea">
         <div #DragArea class="fullscreen-toolbar"></div>
         <mat-accordion>
-
             <!-- Triples NB! This is a copy/paste - should be implemented properly -->
             <mat-expansion-panel>
                 <mat-expansion-panel-header>
@@ -239,18 +245,11 @@
                     -->
 
                     <div class="full-width" fxLayout="row">
-                        <button
-                            mat-raised-button
-                            color="primary"
-                            (click)="doQuery()">
+                        <button mat-raised-button color="primary" (click)="doQuery()">
                             Update <mat-icon>play_circle_outline</mat-icon>
                         </button>
 
-                        <button
-                            mat-raised-button
-                            (click)="resetTriples()">
-                            Reset <mat-icon>cached</mat-icon>
-                        </button>
+                        <button mat-raised-button (click)="resetTriples()">Reset <mat-icon>cached</mat-icon></button>
                     </div>
                 </div>
             </mat-expansion-panel>
@@ -263,9 +262,9 @@
                 [localStore]="localStore"
                 (doQuery)="doQuery()"
                 (setReasoning)="reasoning = $event"
-                (updatedQuery)="data.query = $event">
+                (updatedQuery)="data.query = $event"
+            >
             </app-query-field>
-
         </mat-accordion>
     </div>
 
@@ -279,7 +278,7 @@
         *ngIf="queryType == 'select'"
         [queryResult]="queryResult"
         [queryTime]="queryTime"
-        (clickedURI)="tableClick($event)">
+        (clickedURI)="tableClick($event)"
+    >
     </app-sparql-table>
-
 </div>

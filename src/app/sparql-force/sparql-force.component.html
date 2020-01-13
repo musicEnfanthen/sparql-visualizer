@@ -1,16 +1,9 @@
-<div 
-    id="svg-body" 
-    class="panel-body"
-    [ngClass]="{'fullscreen': fs}"
-    [ngStyle]="{'height': height}"
-    #chart>
-
-    <div class="icon-bar" fxLayout="row" [ngStyle]="{'top': fs ? '20px' : '0px'}">
-
+<div id="svg-body" class="panel-body" [ngClass]="{ fullscreen: fs }" [ngStyle]="{ height: height }" #chart>
+    <div class="icon-bar" fxLayout="row" [ngStyle]="{ top: fs ? '20px' : '0px' }">
         <!-- Limit -->
         <span *ngIf="data.length > 100">
             <mat-form-field style="width: 100px">
-                <mat-select placeholder="Limit ({{data.length}} total)" [(value)]="limit" (change)="redraw()">
+                <mat-select placeholder="Limit ({{ data.length }} total)" [(value)]="limit" (change)="redraw()">
                     <mat-option value="100">100</mat-option>
                     <mat-option *ngIf="data.length > 200" value="200">200</mat-option>
                     <mat-option *ngIf="data.length > 500" value="500">500</mat-option>
@@ -18,17 +11,14 @@
                 </mat-select>
             </mat-form-field>
         </span>
-        
+
         <!-- <span *ngIf="message" class="message">{{message}}</span> -->
 
         <!-- Spacer -->
         <span fxFlex="grow"></span>
 
         <!-- Save SVG -->
-        <mat-icon 
-            [ngStyle]="{'font-size': fs ? '40px' : '30px'}"
-            matTooltip="download SVG"
-            (click)="saveSVG()">
+        <mat-icon [ngStyle]="{ 'font-size': fs ? '40px' : '30px' }" matTooltip="download SVG" (click)="saveSVG()">
             file_download
         </mat-icon>
 
@@ -54,5 +44,4 @@
 
         <span *ngIf="fs" fxFlex="40px"></span>
     </div>
-
 </div>

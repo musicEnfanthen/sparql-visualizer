@@ -1,67 +1,75 @@
-<div class="table-container mat-elevation-z8" [ngStyle]="{'max-height': maxHeight}">
+<div class="table-container mat-elevation-z8" [ngStyle]="{ 'max-height': maxHeight }">
     <div class="table-header">
-        <span fxFlex="40%">{{resultLength}} results<span *ngIf="queryTime"> in {{queryTime/1000}} seconds</span></span>
+        <span fxFlex="40%"
+            >{{ resultLength }} results<span *ngIf="queryTime"> in {{ queryTime / 1000 }} seconds</span></span
+        >
         <span fxFlex="grow"></span>
         <mat-icon matTooltip="download CSV" (click)="showExportCsv()">file_download</mat-icon>
         <span><mat-checkbox [(ngModel)]="showDatatypes">Show datatypes</mat-checkbox></span>
     </div>
     <mat-table #table [dataSource]="dataSource" class="centered">
-
         <!--- Note that these columns can be defined in any order.
                 The actual rendered columns are set as a property on the row definition" -->
-        
+
         <div *ngFor="let col of displayedColumns; let i = index">
             <!-- Columns -->
             <ng-container [matColumnDef]="col">
-            <mat-header-cell *matHeaderCellDef [ngClass]="i == 0 ? 'colFirst' : 'colRest'">{{col}}</mat-header-cell>
-            <mat-cell *matCellDef="let element" [ngClass]="i == 0 ? 'colFirst' : 'colRest'">
+                <mat-header-cell *matHeaderCellDef [ngClass]="i == 0 ? 'colFirst' : 'colRest'">{{
+                    col
+                }}</mat-header-cell>
+                <mat-cell *matCellDef="let element" [ngClass]="i == 0 ? 'colFirst' : 'colRest'">
+                    <!-- Content (can be empty if optional statement used) -->
+                    <div *ngIf="element[col]">
+                        <!-- Column value -->
+                        <span
+                            [ngClass]="element[col] && element[col].type == 'uri' ? 'link' : 'text'"
+                            (click)="clickElement(element[col])"
+                        >
+                            {{ element[col] | prefix }}
+                        </span>
 
-                <!-- Content (can be empty if optional statement used) -->
-                <div *ngIf="element[col]">
-                    <!-- Column value -->
-                    <span
-                        [ngClass]="element[col] && element[col].type == 'uri' ? 'link' : 'text'"
-                        (click)="clickElement(element[col])">
-                        {{element[col] | prefix}}
-                    </span>
-                    
-                    <!-- Datatype / language / time -->
-                    <span *ngIf="element[col].type == 'literal'" style="padding-left: 2px;">
+                        <!-- Datatype / language / time -->
+                        <span *ngIf="element[col].type == 'literal'" style="padding-left: 2px;">
                             <!-- Language tag with tooltip -->
-                            <mat-chip *ngIf="element[col]['xml:lang']" [matTooltip]="element[col]['xml:lang'] | countrytooltip">{{element[col]['xml:lang']}}</mat-chip>
+                            <mat-chip
+                                *ngIf="element[col]['xml:lang']"
+                                [matTooltip]="element[col]['xml:lang'] | countrytooltip"
+                                >{{ element[col]['xml:lang'] }}</mat-chip
+                            >
 
                             <!-- Datatype tag -->
-                            <mat-chip *ngIf="element[col].datatype && showDatatypes">{{element[col].datatype | prefixstring}}</mat-chip>
-                    </span>
+                            <mat-chip *ngIf="element[col].datatype && showDatatypes">{{
+                                element[col].datatype | prefixstring
+                            }}</mat-chip>
+                        </span>
 
-                    <!-- Copy-icon -->
-                    <mat-icon 
-                        *ngIf="element[col].type == 'uri'" 
-                        class="cp" 
-                        ngxClipboard
-                        (click)="showSnackbar('Copied URI to clipboard', 2000)"
-                        [cbContent]="element[col].value">
-                        content_copy
-                    </mat-icon>
-                    <!-- <span *ngIf="element[col].type == 'uri'">
+                        <!-- Copy-icon -->
+                        <mat-icon
+                            *ngIf="element[col].type == 'uri'"
+                            class="cp"
+                            ngxClipboard
+                            (click)="showSnackbar('Copied URI to clipboard', 2000)"
+                            [cbContent]="element[col].value"
+                        >
+                            content_copy
+                        </mat-icon>
+                        <!-- <span *ngIf="element[col].type == 'uri'">
                         <mat-icon class="cp">content_copy</mat-icon>
                     </span> -->
-                </div>
+                    </div>
 
-                <!-- If no value -->
-                <div *ngIf="!element[col]">
-                    <span [ngClass]="element[col] && element[col].type == 'uri' ? 'link' : 'text'">-&nbsp;&nbsp;</span>
-                </div>
-                
-            </mat-cell>
+                    <!-- If no value -->
+                    <div *ngIf="!element[col]">
+                        <span [ngClass]="element[col] && element[col].type == 'uri' ? 'link' : 'text'"
+                            >-&nbsp;&nbsp;</span
+                        >
+                    </div>
+                </mat-cell>
             </ng-container>
         </div>
         <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
     </mat-table>
 
-    <mat-paginator #paginator
-        [pageSize]="10"
-        [pageSizeOptions]="[5, 10, 20]">
-    </mat-paginator>
+    <mat-paginator #paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 20]"> </mat-paginator>
 </div>
