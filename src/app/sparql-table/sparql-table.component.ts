@@ -1,5 +1,8 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, EventEmitter, Output, ViewChild, AfterViewInit } from '@angular/core';
-import { MatPaginator, MatTableDataSource, MatSnackBar, MatDialog } from '@angular/material';
+import { MatDialog } from '@angular/material/dialog';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
 
 import * as _ from 'lodash';
 import { ExportToCsv } from 'ts-export-to-csv';

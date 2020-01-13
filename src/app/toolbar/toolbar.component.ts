@@ -1,6 +1,6 @@
 import { Component, Input, Inject, Output, EventEmitter, HostListener } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import { MatDialog } from '@angular/material';
+import { MatDialog } from '@angular/material/dialog';
 import { DomSanitizer } from '@angular/platform-browser';
 
 import { SettingsDialogComponent } from './settings-dialog/settings-dialog.component';

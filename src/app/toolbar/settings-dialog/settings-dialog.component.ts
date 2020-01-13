@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialogRef } from '@angular/material';
+import { MatDialogRef } from '@angular/material/dialog';
 
 import { DataService } from '../../services/data.service';
 import { ProjectSettingsService } from '../../services/project-settings.service';
