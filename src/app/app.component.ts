@@ -15,7 +15,6 @@ import 'codemirror/mode/turtle/turtle';
     styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-
     private queryResult;
     private resultFieldExpanded = false;
     public tabIndex: number;
@@ -116,6 +115,43 @@ export class AppComponent implements OnInit {
             this.queryLocalstore(query, data);
         } else {
             this.queryTriplestore(query);
+        }
+    }
+
+    doRDFLibQuery() {
+        let query = this.data.query;
+        const data = this.data.triples;
+
+        if (!data) {
+            return;
+        }
+
+        // If no prefix is defined in the query, get it from the turtle file
+        if (query.toLowerCase().indexOf('prefix') === -1) {
+            query = this.queryService.appendPrefixesToQuery(query, data);
+            this.data.query = query;
+        }
+
+        // Get the query type
+        this.queryType = this.queryService.getQuerytype(query);
+
+        // If in localstore mode
+        this.queryLocalstoreWithRDFLib(query, data);
+    }
+
+    async queryLocalstoreWithRDFLib(query, data) {
+        // Perform query with client based rdfstore
+        try {
+            this.queryResult = await this.queryService.doRDFJSLibQuery(query, data);
+            this.resultFieldExpanded = true;
+        } catch (err) {
+            this.queryResult = '';
+            if (err.message && err.name) {
+                if (err.indexOf('undefined') !== -1) {
+                    this.showSnackbar('The query did not return any results', 10000);
+                }
+                this.showSnackbar(err.name + ': ' + err.message, 10000);
+            }
         }
     }
 

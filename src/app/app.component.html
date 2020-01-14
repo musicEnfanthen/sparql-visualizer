@@ -162,6 +162,19 @@
                     [query]="data.query"
                     [tabIndex]="tabIndex"
                     [localStore]="localStore"
+                    (doQuery)="doRDFLibQuery()"
+                    (setReasoning)="reasoning = $event"
+                    (updatedQuery)="data.query = $event"
+                >
+                </app-query-field>
+
+                <!-- Query -->
+                <app-query-field
+                    *ngIf="!textOnly"
+                    [reasoning]="data.reasoning"
+                    [query]="data.query"
+                    [tabIndex]="tabIndex"
+                    [localStore]="localStore"
                     (doQuery)="doQuery()"
                     (setReasoning)="reasoning = $event"
                     (updatedQuery)="data.query = $event"

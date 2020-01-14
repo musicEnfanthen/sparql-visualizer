@@ -8,7 +8,7 @@ import { from as observableFrom } from 'rxjs';
 import * as _ from 'lodash';
 import * as N3 from 'n3';
 import * as rdfstore from 'rdfstore';
-import * as rdflib from 'rdflib';
+import * as $rdf from 'rdflib';
 
 export interface Qres {
     actions?;
@@ -93,13 +93,32 @@ export class QueryService {
         // Get query type
         const queryType = this.getQuerytype(query);
 
-        this.store = rdflib.graph();
+        this.store = $rdf.graph();
+        this.prefixesPromise = this._getPrefixes(triples);
+
+        /*
+        const RDF = Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#');
+        const RDFS = Namespace('http://www.w3.org/2000/01/rdf-schema#');
+        const FOAF = Namespace('http://xmlns.com/foaf/0.1/');
+        const XSD = Namespace('http://www.w3.org/2001/XMLSchema#');
+*/
+
+        // this._loadTriplesInStore(this.store, triples, mimeType);
 
         console.log('QueryService# queryType', queryType);
         console.log('QueryService# query', query);
         console.log('QueryService# triples', triples);
         console.log('QueryService# mimeType', mimeType);
         console.log('QueryService# store', this.store);
+
+        const uri = 'http://example.org/test.ttl';
+
+        try {
+            $rdf.parse(triples, this.store, uri, mimeType);
+            console.log(this.store);
+        } catch (err) {
+            console.log(err);
+        }
     }
 
     doQuery(query, triples, mimeType?) {

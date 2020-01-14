@@ -14,7 +14,6 @@ import 'codemirror/mode/sparql/sparql';
     styleUrls: ['query-field.component.css']
 })
 export class QueryFieldComponent {
-
     @Input() reasoning = false;
     @Input() query: string;
     @Input() tabIndex: number;
