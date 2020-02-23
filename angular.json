@@ -29,7 +29,7 @@
                             "node_modules/codemirror/lib/codemirror.css"
                         ],
                         "scripts": [
-                            "node_modules/d3/d3.min.js",
+                            "node_modules/d3/dist/d3.min.js",
                             "node_modules/rdflib/dist/rdflib.min.js",
                             "node_modules/rdfstore/dist/rdfstore_min.js",
                             "node_modules/codemirror/lib/codemirror.js",
