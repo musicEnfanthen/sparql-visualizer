@@ -2,9 +2,9 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "outDir": "./out-tsc/app",
-        "types": []
+        "types": [],
+        "baseUrl": "./src/"
     },
-    "files": ["src/main.ts", "src/polyfills.ts"],
-    "include": ["src/**/*.ts", "node_modules/ng2-codemirror-typescript/Codemirror.ts"],
+    "include": ["src/main.ts", "src/polyfills.ts","src/**/*.ts"],
     "exclude": ["src/test.ts", "src/**/*.spec.ts"]
 }
