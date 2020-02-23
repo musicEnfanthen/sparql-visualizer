@@ -21,35 +21,76 @@ import { PrefixSimplePipe } from '../pipes/prefix-simple.pipe';
 // Tell TS D3 exists as a variable/object somewhere globally
 declare const d3: any;
 
-export interface Node {
+export interface INode {
     id: string;
     label: string;
     weight: number;
     type: string;
-    owlClass?: boolean;
-    instance?: boolean;
+    owlClass: boolean;
+    instance: boolean;
     // instSpace?: boolean; //MB
     // instSpaceType?: boolean; //MB
 }
 
-export interface Link {
+export interface ILink {
+    source: INode;
+    target: INode;
+    predicate: string;
+    weight: number;
+}
+
+export interface ITriples {
+    nodeSubject: Node;
+    nodePredicate: Node;
+    nodeObject: Node;
+}
+
+export interface IGraph {
+    nodes: INode[];
+    links: ILink[];
+    nodeTriples: ITriples[];
+}
+
+export class Node implements INode {
+    id: string;
+    label: string;
+    weight: number;
+    type: string;
+    owlClass: boolean;
+    instance: boolean;
+
+    // set default values
+    constructor(id: string, weight: number, type: string) {
+        this.id = id;
+        this.label = id;
+        this.weight = weight;
+        this.type = type;
+        this.owlClass = false;
+        this.instance = false;
+    }
+}
+
+export class Link implements ILink {
     source: Node;
     target: Node;
     predicate: string;
     weight: number;
 }
 
-export interface Triples {
-    s: Node;
-    p: Node;
-    o: Node;
+export class Triples implements ITriples {
+    nodeSubject: Node;
+    nodePredicate: Node;
+    nodeObject: Node;
 }
 
-export interface Graph {
+export class Graph implements IGraph {
     nodes: Node[];
     links: Link[];
-    triples: Triples[];
+    nodeTriples: Triples[];
 }
+
+
+
 
 @Component({
     selector: 'app-sparql-force',
@@ -67,9 +108,9 @@ export class SparqlForceComponent implements OnInit, OnChanges {
     private force;
     public fullScreen = false; // Fullscreen on?
 
-    private divWidth;
-    private divHeight;
-    private widthBeforeResize;
+    private divWidth: number;
+    private divHeight: number;
+    private widthBeforeResize: number;
 
     private limit = '100';
 
@@ -87,7 +128,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             } else {
                 this.divHeight = this.getContainerHeight() ? this.getContainerHeight() : 500;
             }
-            this.createChart();
+            this.redraw();
         }
 
         this.getContainerHeight();
@@ -107,23 +148,30 @@ export class SparqlForceComponent implements OnInit, OnChanges {
     }*/
 
     ngOnChanges(changes: SimpleChanges) {
-        if (changes.data.currentValue) {
+        if (changes.data.currentValue && !changes.data.isFirstChange()) {
             this.data = changes.data.currentValue;
             this.redraw();
         }
     }
 
-    getContainerHeight() {
+    getContainerHeight(): number {
+        if (!this.chartContainer || !this.chartContainer.nativeElement) {
+            return null;
+        }
         return this.chartContainer.nativeElement.clientHeight;
     }
 
     redraw() {
         this.cleanGraph();
+        this.createChart();
         this.attachData();
     }
 
     // Redraw on resize
     @HostListener('window:resize') onResize() {
+        if (!this.chartContainer) {
+            return;
+        }
         const el = this.chartContainer.nativeElement;
 
         // guard against resize before view is rendered
@@ -140,7 +188,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
 
             // Redraw
             d3.selectAll('svg').remove();
-            this.createChart();
+            this.redraw();
         }
     }
 
@@ -177,12 +225,14 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .append('svg')
             .attr('width', this.divWidth)
             .attr('height', this.divHeight);
-
-        this.attachData();
     }
 
     attachData() {
-        this.force = d3.layout.force().size([this.divWidth, this.divHeight]);
+        this.force = d3.layout
+            .force()
+            .charge(-500)
+            .linkDistance(50)
+            .size([this.divWidth, this.divHeight]);
 
         // Limit result length
         const limit = parseInt(this.limit, 10);
@@ -205,6 +255,9 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             });
         } else {
             this.graph = this._triplesToGraph(triples);
+
+            console.log('d3GraphData', this.graph);
+
             this.updateChart();
         }
     }
@@ -226,7 +279,6 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         if (!this.svg) {
             return;
         }
-        // if(!this.graph) return;
 
         // ==================== Add Marker ====================
         this.svg
@@ -248,7 +300,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         // ==================== Add Links ====================
         const links = this.svg
             .selectAll('.link')
-            .data(this.graph.triples)
+            .data(this.graph.nodeTriples)
             .enter()
             .append('path')
             .attr('marker-end', 'url(#end)')
@@ -257,13 +309,13 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         // ==================== Add Link Names =====================
         const linkTexts = this.svg
             .selectAll('.link-text')
-            .data(this.graph.triples)
+            .data(this.graph.nodeTriples)
             .enter()
             .append('text')
             .attr('class', 'link-text')
-            .text(d => d.p.label);
+            .text(d => d.nodePredicate.label);
 
-        // ==================== Add Link Names =====================
+        // ==================== Add Node Names =====================
         const nodeTexts = this.svg
             .selectAll('.node-text')
             .data(this._filterNodesByType(this.graph.nodes, 'node'))
@@ -316,19 +368,34 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         this.force.on('tick', () => {
             nodes.attr('cx', d => d.x).attr('cy', d => d.y);
 
-            links.attr('d', d => 'M' + d.s.x + ',' + d.s.y + 'S' + d.p.x + ',' + d.p.y + ' ' + d.o.x + ',' + d.o.y);
+            links.attr(
+                'd',
+                d =>
+                    'M' +
+                    d.nodeSubject.x +
+                    ',' +
+                    d.nodeSubject.y +
+                    'S' +
+                    d.nodePredicate.x +
+                    ',' +
+                    d.nodePredicate.y +
+                    ' ' +
+                    d.nodeObject.x +
+                    ',' +
+                    d.nodeObject.y
+            );
 
             nodeTexts.attr('x', d => d.x + 12).attr('y', d => d.y + 3);
 
-            linkTexts.attr('x', d => 4 + (d.s.x + d.p.x + d.o.x) / 3).attr('y', d => 4 + (d.s.y + d.p.y + d.o.y) / 3);
+            linkTexts
+                .attr('x', d => 4 + (d.nodeSubject.x + d.nodePredicate.x + d.nodeObject.x) / 3)
+                .attr('y', d => 4 + (d.nodeSubject.y + d.nodePredicate.y + d.nodeObject.y) / 3);
         });
 
         // ==================== Run ====================
         this.force
             .nodes(this.graph.nodes)
             .links(this.graph.links)
-            .charge(-500)
-            .linkDistance(50)
             .start();
     }
 
@@ -346,7 +413,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         }
 
         // Graph
-        const graph: Graph = { nodes: [], links: [], triples: [] };
+        const graph: Graph = { nodes: [], links: [], nodeTriples: [] };
 
         // Initial Graph from triples
         triples.forEach(triple => {
@@ -362,11 +429,11 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             let subjNode: Node = this._filterNodesById(graph.nodes, subjId)[0];
             let objNode: Node = this._filterNodesById(graph.nodes, objId)[0];
 
-            const predNode: Node = { id: predId, label: predId, weight: 1, type: 'pred' };
+            const predNode: Node = new Node(predId, 1, 'pred');
             graph.nodes.push(predNode);
 
             if (subjNode == null) {
-                subjNode = { id: subjId, label: subjId, weight: 1, type: 'node' };
+                subjNode = new Node(subjId, 1, 'node');
                 // MB: here I made some mistake. The objNode.label cannot be found as it is only introduced in the next if
                 // if(objNode.label == "bot:Space"){subjNode.instSpace = true} //MB
                 // else if(objNode.label == "prop:SpaceType"){subjNode.instSpaceType = true} //MB
@@ -375,17 +442,18 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             }
 
             if (objNode == null) {
-                objNode = { id: objId, label: objId, weight: 1, type: 'node' };
-                // If the predicate is rdf:type, the node is an OWL Class
-                // Then the domain is an instance
-                if (
-                    predNode.label === 'rdf:type' ||
-                    predNode.label === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-                ) {
-                    objNode.owlClass = true;
-                    subjNode.instance = true;
-                }
+                objNode = new Node(objId, 1, 'node');
+
                 graph.nodes.push(objNode);
+            }
+
+            // If the predicate is rdf:type, the node is an OWL Class
+            // Then the domain is an instance
+            if (subjNode.instance === false) {
+                subjNode.instance = this._checkForRdfType(predNode);
+            }
+            if (objNode.owlClass === false) {
+                objNode.owlClass = this._checkForRdfType(predNode);
             }
 
             const blankLabel = '';
@@ -393,7 +461,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             graph.links.push({ source: subjNode, target: predNode, predicate: blankLabel, weight: 1 });
             graph.links.push({ source: predNode, target: objNode, predicate: blankLabel, weight: 1 });
 
-            graph.triples.push({ s: subjNode, p: predNode, o: objNode });
+            graph.nodeTriples.push({ nodeSubject: subjNode, nodePredicate: predNode, nodeObject: objNode });
         });
 
         return graph;
@@ -454,5 +522,15 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         });
         console.log(triples);
         return triples;
+    }
+
+
+    private _checkForRdfType(predNode: Node): boolean {
+        return (
+            // rdf:type
+            predNode.label === 'a' ||
+            predNode.label === 'rdf:type' ||
+            predNode.label === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+        );
     }
 }
