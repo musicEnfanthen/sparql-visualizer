@@ -38,7 +38,7 @@ import { CountryTooltipPipe } from './pipes/country-tooltip.pipe';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
 // Codemirror
-import { CodemirrorModule } from 'ng2-codemirror-typescript/Codemirror';
+import { CodemirrorModule } from '@ctrl/ngx-codemirror';
 
 // Clipboard
 import { ClipboardModule } from 'ngx-clipboard';

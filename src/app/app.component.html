@@ -137,10 +137,10 @@
                         </mat-expansion-panel-header>
 
                         <div>
-                            <codemirror
+                            <ngx-codemirror
                                 [(ngModel)]="data.triples"
-                                [config]="cmConfig">
-                            </codemirror>
+                                [options]="cmConfig">
+                            </ngx-codemirror>
 
                             <div class="full-width" fxLayout="row">
                                 <button mat-raised-button color="primary" (click)="doQuery()">
@@ -248,10 +248,10 @@
                     </mat-panel-title>
                 </mat-expansion-panel-header>
                 <div>
-                    <codemirror
+                    <ngx-codemirror
                         [(ngModel)]="data.triples"
-                        [config]="cmConfig">
-                    </codemirror>
+                        [options]="cmConfig">
+                    </ngx-codemirror>
 
                     <div class="full-width" fxLayout="row">
                         <button mat-raised-button color="primary" (click)="doQuery()">
