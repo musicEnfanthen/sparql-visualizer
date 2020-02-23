@@ -12,16 +12,14 @@ import {
 } from '@angular/core';
 
 import * as _ from 'lodash';
+import * as d3 from 'd3';
 import * as d3_save_svg from 'd3-save-svg';
 import * as N3 from 'n3';
 import * as screenfull from 'screenfull';
 
 import { PrefixSimplePipe } from '../pipes/prefix-simple.pipe';
 
-// Tell TS D3 exists as a variable/object somewhere globally
-declare const d3: any;
-
-export interface INode {
+export class Node implements d3.SimulationNodeDatum {
     id: string;
     label: string;
     weight: number;
@@ -30,34 +28,15 @@ export interface INode {
     instance: boolean;
     // instSpace?: boolean; //MB
     // instSpaceType?: boolean; //MB
-}
 
-export interface ILink {
-    source: INode;
-    target: INode;
-    predicate: string;
-    weight: number;
-}
-
-export interface ITriples {
-    nodeSubject: Node;
-    nodePredicate: Node;
-    nodeObject: Node;
-}
-
-export interface IGraph {
-    nodes: INode[];
-    links: ILink[];
-    nodeTriples: ITriples[];
-}
-
-export class Node implements INode {
-    id: string;
-    label: string;
-    weight: number;
-    type: string;
-    owlClass: boolean;
-    instance: boolean;
+    // optional properties from d3.SimulationNodeDatum
+    index?: number;
+    x?: number;
+    y?: number;
+    vx?: number;
+    vy?: number;
+    fx?: number | null;
+    fy?: number | null;
 
     // set default values
     constructor(id: string, weight: number, type: string) {
@@ -70,26 +49,53 @@ export class Node implements INode {
     }
 }
 
-export class Link implements ILink {
-    source: Node;
-    target: Node;
+export class Link implements d3.SimulationLinkDatum<Node> {
+    source: Node | string | number;
+    target: Node | string | number;
+
     predicate: string;
     weight: number;
+
+    // optional properties from d3.SimulationLinkDatum
+    index?: number;
+
+    // set default values
+    //  source: predNode, target: objNode, predicate: blankLabel, weight: 1
+    constructor(source: Node | string | number, target: Node | string | number, predicate: string, weight: number) {
+        this.source = source;
+        this.target = target;
+        this.predicate = predicate;
+        this.weight = weight;
+    }
 }
 
-export class Triples implements ITriples {
+export class Triples {
     nodeSubject: Node;
     nodePredicate: Node;
     nodeObject: Node;
+
+    constructor(nodeSubject: Node, nodePredicate: Node, nodeObject: Node) {
+        this.nodeSubject = nodeSubject;
+        this.nodePredicate = nodePredicate;
+        this.nodeObject = nodeObject;
+    }
 }
 
-export class Graph implements IGraph {
+export class Graph {
     nodes: Node[];
     links: Link[];
     nodeTriples: Triples[];
+
+    constructor() {
+        this.nodes = [];
+        this.links = [];
+        this.nodeTriples = [];
+    }
 }
 
+export interface D3Simulation extends d3.Simulation<Node, Link> {}
 
+export interface D3Selection extends d3.Selection<any, any, any, any> {}
 
 
 @Component({
@@ -104,14 +110,14 @@ export class SparqlForceComponent implements OnInit, OnChanges {
     @ViewChild('chart', { static: true }) private chartContainer: ElementRef;
 
     private graph: Graph;
-    private svg;
-    private force;
-    public fullScreen = false; // Fullscreen on?
+    private svg: D3Selection;
+    private forceSimulation: D3Simulation;
 
     private divWidth: number;
     private divHeight: number;
     private widthBeforeResize: number;
 
+    public fullScreen = false; // Fullscreen on?
     private limit = '100';
 
     // Time
@@ -227,12 +233,38 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .attr('height', this.divHeight);
     }
 
+    setupForceSimulation() {
+        // set up the simulation
+        this.forceSimulation = d3.forceSimulation();
+
+        // Create forces
+        const chargeForce = d3.forceManyBody().strength(-50);
+
+        const centerForce = d3.forceCenter(this.divWidth / 2, this.divHeight / 2);
+
+        // create a custom link force with id accessor to use named sources and targets
+        const linkForce = d3.forceLink()
+            .links(this.graph.links)
+            .id((d: Link) => d.predicate)
+            .distance(50);
+
+        // add forces
+        // we're going to add a charge to each node
+        // also going to add a centering force
+        // also going to add the custom link force
+        this.forceSimulation
+            .force("charge_force", chargeForce)
+            .force("center_force", centerForce);
+
+        // add nodes to the simulation
+        this.forceSimulation.nodes(this.graph.nodes);
+
+        // add links  to the simulation
+        this.forceSimulation.force("links", linkForce);
+
+    }
+
     attachData() {
-        this.force = d3.layout
-            .force()
-            .charge(-500)
-            .linkDistance(50)
-            .size([this.divWidth, this.divHeight]);
 
         // Limit result length
         const limit = parseInt(this.limit, 10);
@@ -251,6 +283,8 @@ export class SparqlForceComponent implements OnInit, OnChanges {
                 console.log(d);
                 const abr = this._abbreviateTriples(d);
                 this.graph = this._triplesToGraph(abr);
+
+                this.setupForceSimulation();
                 this.updateChart();
             });
         } else {
@@ -258,6 +292,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
 
             console.log('d3GraphData', this.graph);
 
+            this.setupForceSimulation();
             this.updateChart();
         }
     }
@@ -298,7 +333,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .attr('points', '0,-5 10,0 0,5');
 
         // ==================== Add Links ====================
-        const links = this.svg
+        const links: D3Selection = this.svg
             .selectAll('.link')
             .data(this.graph.nodeTriples)
             .enter()
@@ -307,31 +342,31 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .attr('class', 'link');
 
         // ==================== Add Link Names =====================
-        const linkTexts = this.svg
+        const linkTexts: D3Selection = this.svg
             .selectAll('.link-text')
             .data(this.graph.nodeTriples)
             .enter()
             .append('text')
             .attr('class', 'link-text')
-            .text(d => d.nodePredicate.label);
+            .text((d: Triples) => d.nodePredicate.label);
 
         // ==================== Add Node Names =====================
-        const nodeTexts = this.svg
+        const nodeTexts:D3Selection = this.svg
             .selectAll('.node-text')
             .data(this._filterNodesByType(this.graph.nodes, 'node'))
             .enter()
             .append('text')
             .attr('class', 'node-text')
-            .text(d => d.label);
+            .text((d: Node) => d.label);
 
         // ==================== Add Node =====================
-        const nodes = this.svg
+        const nodes: D3Selection = this.svg
             .selectAll('.node')
             .data(this._filterNodesByType(this.graph.nodes, 'node'))
             .enter()
             .append('circle')
             // .attr("class", "node")
-            .attr('class', d => {
+            .attr('class', (d: Node) => {
                 if (d.owlClass) {
                     return 'class';
                     // }else if(d.instSpace){ //MB
@@ -346,8 +381,8 @@ export class SparqlForceComponent implements OnInit, OnChanges {
                     return 'node';
                 }
             })
-            .attr('id', d => d.label)
-            .attr('r', d => {
+            .attr('id', (d: Node) => d.label)
+            .attr('r', (d: Node) => {
                 // MB if(d.instance || d.instSpace || d.instSpaceType){
                 if (d.label.indexOf('_:') !== -1) {
                     return 7;
@@ -359,18 +394,17 @@ export class SparqlForceComponent implements OnInit, OnChanges {
                     return 8;
                 }
             })
-            .on('click', d => {
+            .on('click', (d: Node) => {
                 this.clicked(d);
-            })
-            .call(this.force.drag); // nodes
+            });
 
         // ==================== When dragging ====================
-        this.force.on('tick', () => {
-            nodes.attr('cx', d => d.x).attr('cy', d => d.y);
+        this.forceSimulation.on('tick', () => {
+            nodes.attr('cx', (d: Node) => d.x).attr('cy', (d: Node) => d.y);
 
             links.attr(
                 'd',
-                d =>
+                (d: Triples) =>
                     'M' +
                     d.nodeSubject.x +
                     ',' +
@@ -385,18 +419,12 @@ export class SparqlForceComponent implements OnInit, OnChanges {
                     d.nodeObject.y
             );
 
-            nodeTexts.attr('x', d => d.x + 12).attr('y', d => d.y + 3);
+            nodeTexts.attr('x', (d: Node) => d.x + 12).attr('y', (d: Node) => d.y + 3);
 
             linkTexts
-                .attr('x', d => 4 + (d.nodeSubject.x + d.nodePredicate.x + d.nodeObject.x) / 3)
-                .attr('y', d => 4 + (d.nodeSubject.y + d.nodePredicate.y + d.nodeObject.y) / 3);
+                .attr('x', (d: Triples) => 4 + (d.nodeSubject.x + d.nodePredicate.x + d.nodeObject.x) / 3)
+                .attr('y', (d: Triples) => 4 + (d.nodeSubject.y + d.nodePredicate.y + d.nodeObject.y) / 3);
         });
-
-        // ==================== Run ====================
-        this.force
-            .nodes(this.graph.nodes)
-            .links(this.graph.links)
-            .start();
     }
 
     private _filterNodesById(nodes, id) {
@@ -413,7 +441,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         }
 
         // Graph
-        const graph: Graph = { nodes: [], links: [], nodeTriples: [] };
+        const graph: Graph = new Graph();
 
         // Initial Graph from triples
         triples.forEach(triple => {
@@ -458,10 +486,10 @@ export class SparqlForceComponent implements OnInit, OnChanges {
 
             const blankLabel = '';
 
-            graph.links.push({ source: subjNode, target: predNode, predicate: blankLabel, weight: 1 });
-            graph.links.push({ source: predNode, target: objNode, predicate: blankLabel, weight: 1 });
+            graph.links.push(new Link(subjNode, predNode, blankLabel, 1 ));
+            graph.links.push(new Link(predNode, objNode, blankLabel, 1 ));
 
-            graph.nodeTriples.push({ nodeSubject: subjNode, nodePredicate: predNode, nodeObject: objNode });
+            graph.nodeTriples.push(new Triples(subjNode, predNode, objNode ));
         });
 
         return graph;
