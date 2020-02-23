@@ -136,7 +136,7 @@ export class QueryService {
                 return this._loadTriplesInStore(store, triples, mimeType);
             })
             .then(storeSize => {
-                // console.log(storeSize);
+                // console.log('storeSize', storeSize);
                 return this._executeQuery(this.store, query);
             })
             .then(res => {
@@ -144,6 +144,7 @@ export class QueryService {
 
                 // Reformat data if select query
                 if (queryType === 'select') {
+                    console.log('got SELECT request');
                     return this.sparqlJSON(data).data;
                 }
 
@@ -154,28 +155,25 @@ export class QueryService {
                 // Get prefixes
                 return this.prefixesPromise.then(prefixes => {
                     // Process result
-                    return _.chain(data.triples)
-                        .map(x => {
-                            let s = x.subject.nominalValue;
-                            let p = x.predicate.nominalValue;
-                            let o = x.object.nominalValue;
+                    return data.triples.map(x => {
+                        let s = x.subject.nominalValue;
+                        let p = x.predicate.nominalValue;
+                        let o = x.object.nominalValue;
 
-                            // Abbreviate turtle format
-                            if (mimeType === 'text/turtle') {
-                                if (this._abbreviate(s, prefixes) != null) {
-                                    s = this._abbreviate(s, prefixes);
-                                }
-                                if (this._abbreviate(p, prefixes) != null) {
-                                    p = this._abbreviate(p, prefixes);
-                                }
-                                if (this._abbreviate(o, prefixes) != null) {
-                                    o = this._abbreviate(o, prefixes);
-                                }
+                        // Abbreviate turtle format
+                        if (mimeType === 'text/turtle') {
+                            if (this._abbreviate(s, prefixes) != null) {
+                                s = this._abbreviate(s, prefixes);
                             }
-
-                            return { subject: s, predicate: p, object: o };
-                        })
-                        .value();
+                            if (this._abbreviate(p, prefixes) != null) {
+                                p = this._abbreviate(p, prefixes);
+                            }
+                            if (this._abbreviate(o, prefixes) != null) {
+                                o = this._abbreviate(o, prefixes);
+                            }
+                        }
+                        return { subject: s, predicate: p, object: o };
+                    });
                 });
             });
     }
@@ -226,6 +224,8 @@ export class QueryService {
     }
 
     public sparqlJSON(data) {
+
+
         // Get variable keys
         const varKeys = _.keysIn(data[0]);
 
@@ -236,6 +236,8 @@ export class QueryService {
 
         // Flatten object array
         const b = _.flatMap(data);
+        console.log('DATA', data);
+        console.log('b', b);
 
         // Rename keys according to below mapping table
         const map = {
@@ -358,19 +360,23 @@ export class QueryService {
     }
 
     private _executeQuery(store, query) {
-        return new Promise((resolve, reject) => {
+        const test = new Promise((resolve, reject) => {
             store.execute(query, (err, res) => {
                 if (err) {
+                    console.log('got error', err);
                     reject(err);
                 }
+                console.log('resolved', res);
                 resolve(res);
             });
         });
+        console.log(test);
+        return test;
     }
 
     private _getPrefixes(triples) {
         // ParseTriples
-        const parser = N3.Parser();
+        const parser = new N3.Parser();
         return new Promise((resolve, reject) => {
             parser.parse(triples, (err, triple, prefixes) => {
                 if (!triple) {
@@ -385,10 +391,10 @@ export class QueryService {
 
     private _abbreviate(foi, prefixes) {
         let newVal = null;
-        // If FoI has 'http' in its name, continue
+
         if (foi.indexOf('http') !== -1) {
             // Loop over prefixes
-            _.each(prefixes, (val, key) => {
+            Object.entries(prefixes).forEach(([key, val], index) => {
                 // If the FoI has the prefixed namespace in its name, return it
                 if (foi.indexOf(val) !== -1) {
                     newVal = foi.replace(val, key + ':');

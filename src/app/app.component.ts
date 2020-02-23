@@ -8,6 +8,7 @@ import { DataService, ProjectData, TabsData } from './services/data.service';
 import { SPARQLService } from './services/sparql.service';
 
 import 'codemirror/mode/turtle/turtle';
+import { from } from 'rxjs';
 
 @Component({
     selector: 'app-root',
@@ -15,7 +16,8 @@ import 'codemirror/mode/turtle/turtle';
     styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-    private queryResult;
+
+    private queryResult$;
     private resultFieldExpanded = false;
     public tabIndex: number;
     public showJSON = false;
@@ -112,7 +114,7 @@ export class AppComponent implements OnInit {
 
         // If in localstore mode
         if (this.localStore) {
-            this.queryLocalstore(query, data);
+            this.queryResult$ = this.queryLocalstore(query, data);
         } else {
             this.queryTriplestore(query);
         }
@@ -142,10 +144,10 @@ export class AppComponent implements OnInit {
     async queryLocalstoreWithRDFLib(query, data) {
         // Perform query with client based rdfstore
         try {
-            this.queryResult = await this.queryService.doRDFJSLibQuery(query, data);
+            // this.queryResult = await this.queryService.doRDFJSLibQuery(query, data);
             this.resultFieldExpanded = true;
         } catch (err) {
-            this.queryResult = '';
+            // this.queryResult = '';
             if (err.message && err.name) {
                 if (err.indexOf('undefined') !== -1) {
                     this.showSnackbar('The query did not return any results', 10000);
@@ -159,47 +161,51 @@ export class AppComponent implements OnInit {
         console.log('AppComponent# log', ev);
     }
 
-    async queryLocalstore(query, data) {
-        if (this.reasoning) {
-            // Show loader
-            this.dataService.setLoadingMessage('Performing query using Hylar');
-            this.dataService.setLoaderStatus(true);
+    queryLocalstore(query, data) {
+        /* TODO: readd Hylar
+       /* if (this.reasoning) {
+           // Show loader
+           this.dataService.setLoadingMessage('Performing query using Hylar');
+           this.dataService.setLoaderStatus(true);
 
-            /* TODO: readd Hylar
-            // Query Hylar based endpoint
-            this.queryService.doHylarQuery(query, data).subscribe(
-                res => {
-                    this.queryResult = res;
-                    this.resultFieldExpanded = true;
-                    this.dataService.setLoaderStatus(false);
-                },
-                err => {
-                    this.dataService.setLoaderStatus(false);
-                    this.queryResult = '';
-                    if (err.indexOf('undefined') !== -1) {
-                        this.showSnackbar('The query did not return any results', 10000);
-                    }
-                    if (err.message && err.name) {
-                        this.showSnackbar(err.name + ': ' + err.message, 10000);
-                    }
-               }
-            );
-            */
+           // Query Hylar based endpoint
+           this.queryService.doHylarQuery(query, data).subscribe(
+               res => {
+                   this.queryResult = res;
+                   this.resultFieldExpanded = true;
+                   this.dataService.setLoaderStatus(false);
+               },
+               err => {
+                   this.dataService.setLoaderStatus(false);
+                   this.queryResult = '';
+                   if (err.indexOf('undefined') !== -1) {
+                       this.showSnackbar('The query did not return any results', 10000);
+                   }
+                   if (err.message && err.name) {
+                       this.showSnackbar(err.name + ': ' + err.message, 10000);
+                   }
+              }
+           );
         } else {
-            // Perform query with client based rdfstore
+           */
+        // Perform query with client based rdfstore
             try {
-                this.queryResult = await this.queryService.doQuery(query, data);
+                const result = from(this.queryService.doQuery(query, data));
                 this.resultFieldExpanded = true;
+
+                return result;
             } catch (err) {
-                this.queryResult = '';
+                // this.queryResult = '';
+                console.log('ERROR', err);
                 if (err.message && err.name) {
-                    if (err.indexOf('undefined') !== -1) {
+                    /*if (err.indexOf('undefined') !== -1) {
                         this.showSnackbar('The query did not return any results', 10000);
-                    }
+                    }*/
                     this.showSnackbar(err.name + ': ' + err.message, 10000);
                 }
+                return from([]);
             }
-        }
+
     }
 
     async queryTriplestore(query) {
@@ -232,7 +238,7 @@ export class AppComponent implements OnInit {
 
         // If it's a select query, just return the result as it is
         if (this.queryType === 'select') {
-            this.queryResult = qRes;
+            // this.queryResult = qRes;
             this.resultFieldExpanded = true;
         }
 
@@ -249,12 +255,12 @@ export class AppComponent implements OnInit {
             }
 
             if (!processed) {
-                this.queryResult = null;
+                // this.queryResult = null;
                 this.showSnackbar('Query returned no results. Did you load the correct dataset?');
                 return;
             }
 
-            this.queryResult = processed;
+            // this.queryResult = processed;
             this.resultFieldExpanded = true;
         }
 
@@ -296,7 +302,7 @@ export class AppComponent implements OnInit {
                 if (this.data.query) {
                     this.doQuery();
                 } else {
-                    this.queryResult = null;
+                    this.queryResult$ = from([]);
                 }
             });
         }

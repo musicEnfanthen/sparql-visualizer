@@ -184,7 +184,7 @@
                 </app-query-field>
 
                 <!-- Result -->
-                <div *ngIf="queryResult">
+                <div *ngIf="(queryResult$ | async) as queryResult">
                     <!-- CONSTRUCT -->
                     <mat-accordion *ngIf="queryType == 'construct'">
                         <mat-expansion-panel [expanded]="resultFieldExpanded">
