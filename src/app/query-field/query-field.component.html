@@ -2,7 +2,7 @@
     <mat-expansion-panel>
         <mat-expansion-panel-header>
             <mat-panel-title>
-                Query
+                {{ title }}
             </mat-panel-title>
             <!-- <mat-panel-description>
             Query the data
@@ -22,11 +22,11 @@
             </textarea>
         </mat-form-field> -->
 
-        <codemirror
+        <ngx-codemirror
             [(ngModel)]="query"
             (change)="onChange(query)"
-            [config]="cmConfig">
-        </codemirror>
+            [options]="cmConfig">
+        </ngx-codemirror>
 
         <div class="full-width" fxLayout="row">
             <div fxLayout="row">

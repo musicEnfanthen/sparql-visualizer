@@ -158,6 +158,7 @@
                 <!-- Query -->
                 <app-query-field
                     *ngIf="!textOnly"
+                    [title]="'Query RDFLIB'"
                     [reasoning]="data.reasoning"
                     [query]="data.query"
                     [tabIndex]="tabIndex"
@@ -171,6 +172,7 @@
                 <!-- Query -->
                 <app-query-field
                     *ngIf="!textOnly"
+                    [title]="'Query rdfstore'"
                     [reasoning]="data.reasoning"
                     [query]="data.query"
                     [tabIndex]="tabIndex"
