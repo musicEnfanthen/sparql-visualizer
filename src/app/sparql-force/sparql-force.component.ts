@@ -12,14 +12,18 @@ import {
 } from '@angular/core';
 
 import * as _ from 'lodash';
-import * as d3 from 'd3';
+import * as d3_drag from 'd3-drag';
+import * as d3_force from 'd3-force';
+import * as d3_selection from 'd3-selection';
 import * as d3_save_svg from 'd3-save-svg';
+import * as d3_zoom from 'd3-zoom';
 import * as N3 from 'n3';
 import * as screenfull from 'screenfull';
 
 import { PrefixSimplePipe } from '../pipes/prefix-simple.pipe';
 
-export class Node implements d3.SimulationNodeDatum {
+
+export class Node implements d3_force.SimulationNodeDatum {
     id: string;
     label: string;
     weight: number;
@@ -49,7 +53,7 @@ export class Node implements d3.SimulationNodeDatum {
     }
 }
 
-export class Link implements d3.SimulationLinkDatum<Node> {
+export class Link implements d3_force.SimulationLinkDatum<Node> {
     source: Node | string | number;
     target: Node | string | number;
 
@@ -93,9 +97,9 @@ export class Graph {
     }
 }
 
-export interface D3Simulation extends d3.Simulation<Node, Link> {}
+export interface D3Simulation extends d3_force.Simulation<Node, Link> {}
 
-export interface D3Selection extends d3.Selection<any, any, any, any> {}
+export interface D3Selection extends d3_selection.Selection<any, any, any, any> {}
 
 
 @Component({
@@ -193,7 +197,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             this.divHeight = this.fullScreen ? el.clientHeight : this.height;
 
             // Redraw
-            d3.selectAll('svg').remove();
+            d3_selection.selectAll('svg').remove();
             this.redraw();
         }
     }
@@ -212,7 +216,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         const config = {
             filename: 'sparql-viz-graph'
         };
-        d3_save_svg.save(d3.select('svg').node(), config);
+        d3_save_svg.save(d3_selection.select('svg').node(), config);
     }
 
     createChart() {
@@ -226,7 +230,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             this.divHeight = element.clientHeight;
         }
 
-        this.svg = d3
+        this.svg = d3_selection
             .select(element)
             .append('svg')
             .attr('width', this.divWidth)
@@ -235,15 +239,15 @@ export class SparqlForceComponent implements OnInit, OnChanges {
 
     setupForceSimulation() {
         // set up the simulation
-        this.forceSimulation = d3.forceSimulation();
+        this.forceSimulation = d3_force.forceSimulation();
 
         // Create forces
-        const chargeForce = d3.forceManyBody().strength(-50);
+        const chargeForce = d3_force.forceManyBody().strength(-50);
 
-        const centerForce = d3.forceCenter(this.divWidth / 2, this.divHeight / 2);
+        const centerForce = d3_force.forceCenter(this.divWidth / 2, this.divHeight / 2);
 
         // create a custom link force with id accessor to use named sources and targets
-        const linkForce = d3.forceLink()
+        const linkForce = d3_force.forceLink()
             .links(this.graph.links)
             .id((d: Link) => d.predicate)
             .distance(50);
@@ -298,7 +302,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
     }
 
     public clicked(d) {
-        if (d3.event.defaultPrevented) {
+        if (d3_selection.event.defaultPrevented) {
             return;
         } // dragged
 
@@ -307,7 +311,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
 
     cleanGraph() {
         // Remove everything below the SVG element
-        d3.selectAll('svg > *').remove();
+        d3_selection.selectAll('svg > *').remove();
     }
 
     updateChart() {
