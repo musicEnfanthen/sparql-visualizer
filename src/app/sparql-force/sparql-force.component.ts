@@ -110,11 +110,12 @@ export interface D3Selection extends d3_selection.Selection<any, any, any, any> 
 export class SparqlForceComponent implements OnInit, OnChanges {
     @Input() public data: Array<any>;
     @Input() public height: number;
-    @Output() clickedURI = new EventEmitter<string>();
+    @Output() clickedURI = new EventEmitter<Node>();
     @ViewChild('chart', { static: true }) private chartContainer: ElementRef;
 
     private graph: Graph;
     private svg: D3Selection;
+    private zoomGroup: D3Selection;
     private forceSimulation: D3Simulation;
 
     private divWidth: number;
@@ -171,7 +172,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         return this.chartContainer.nativeElement.clientHeight;
     }
 
-    redraw() {
+    redraw(): void {
         this.cleanGraph();
         this.createChart();
         this.attachData();
@@ -212,14 +213,19 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         }
     }
 
-    saveSVG() {
+    saveSVG(): void {
         const config = {
             filename: 'sparql-viz-graph'
         };
         d3_save_svg.save(d3_selection.select('svg').node(), config);
     }
 
-    createChart() {
+    cleanGraph(): void {
+        // Remove everything below the SVG element
+        d3_selection.selectAll('svg > *').remove();
+    }
+
+    createChart(): void {
         const element = this.chartContainer.nativeElement;
 
         // Get container width
@@ -237,39 +243,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .attr('height', this.divHeight);
     }
 
-    setupForceSimulation() {
-        // set up the simulation
-        this.forceSimulation = d3_force.forceSimulation();
-
-        // Create forces
-        const chargeForce = d3_force.forceManyBody().strength(-50);
-
-        const centerForce = d3_force.forceCenter(this.divWidth / 2, this.divHeight / 2);
-
-        // create a custom link force with id accessor to use named sources and targets
-        const linkForce = d3_force.forceLink()
-            .links(this.graph.links)
-            .id((d: Link) => d.predicate)
-            .distance(50);
-
-        // add forces
-        // we're going to add a charge to each node
-        // also going to add a centering force
-        // also going to add the custom link force
-        this.forceSimulation
-            .force("charge_force", chargeForce)
-            .force("center_force", centerForce);
-
-        // add nodes to the simulation
-        this.forceSimulation.nodes(this.graph.nodes);
-
-        // add links  to the simulation
-        this.forceSimulation.force("links", linkForce);
-
-    }
-
-    attachData() {
-
+    attachData(): void {
         // Limit result length
         const limit = parseInt(this.limit, 10);
         let triples;
@@ -301,26 +275,53 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         }
     }
 
-    public clicked(d) {
-        if (d3_selection.event.defaultPrevented) {
-            return;
-        } // dragged
+    setupForceSimulation(): void {
+        // set up the simulation
+        this.forceSimulation = d3_force.forceSimulation();
 
-        this.clickedURI.emit(d);
+        // Create forces
+        const chargeForce = d3_force.forceManyBody().strength((d: Node) => this.nodeRadius(d) * -5 );
+
+        const centerForce = d3_force.forceCenter(this.divWidth / 2, this.divHeight / 2);
+
+        const collideForce = d3_force.forceCollide()
+                .strength(1)
+                .radius((d: Node) => this.nodeRadius(d) + 5)
+                .iterations(2);
+
+        // create a custom link force with id accessor to use named sources and targets
+        const linkForce = d3_force.forceLink()
+            .links(this.graph.links)
+            .id((d: Link) => d.predicate)
+            .distance(30);
+
+        // add forces
+        // we're going to add a charge to each node
+        // also going to add a centering force
+        // also going to add the custom link force
+        this.forceSimulation
+            .force("charge_force", chargeForce)
+            .force("center_force", centerForce)
+            .force("collied_force", collideForce);
+
+        // add nodes to the simulation
+        this.forceSimulation.nodes(this.graph.nodes);
+
+        // add links  to the simulation
+        this.forceSimulation.force("links", linkForce);
+
     }
 
-    cleanGraph() {
-        // Remove everything below the SVG element
-        d3_selection.selectAll('svg > *').remove();
-    }
-
-    updateChart() {
+    updateChart(): void {
         if (!this.svg) {
             return;
         }
 
+        // ==================== Add Encompassing Group for Zoom =====================
+        this.zoomGroup = this.svg.append("g").attr("class", "zoom-container");
+
         // ==================== Add Marker ====================
-        this.svg
+        this.zoomGroup
             .append('svg:defs')
             .selectAll('marker')
             .data(['end'])
@@ -337,7 +338,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .attr('points', '0,-5 10,0 0,5');
 
         // ==================== Add Links ====================
-        const links: D3Selection = this.svg
+        const links: D3Selection = this.zoomGroup
             .selectAll('.link')
             .data(this.graph.nodeTriples)
             .enter()
@@ -346,7 +347,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .attr('class', 'link');
 
         // ==================== Add Link Names =====================
-        const linkTexts: D3Selection = this.svg
+        const linkTexts: D3Selection = this.zoomGroup
             .selectAll('.link-text')
             .data(this.graph.nodeTriples)
             .enter()
@@ -355,7 +356,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .text((d: Triples) => d.nodePredicate.label);
 
         // ==================== Add Node Names =====================
-        const nodeTexts:D3Selection = this.svg
+        const nodeTexts:D3Selection = this.zoomGroup
             .selectAll('.node-text')
             .data(this._filterNodesByType(this.graph.nodes, 'node'))
             .enter()
@@ -364,7 +365,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .text((d: Node) => d.label);
 
         // ==================== Add Node =====================
-        const nodes: D3Selection = this.svg
+        const nodes: D3Selection = this.zoomGroup
             .selectAll('.node')
             .data(this._filterNodesByType(this.graph.nodes, 'node'))
             .enter()
@@ -386,60 +387,152 @@ export class SparqlForceComponent implements OnInit, OnChanges {
                 }
             })
             .attr('id', (d: Node) => d.label)
-            .attr('r', (d: Node) => {
-                // MB if(d.instance || d.instSpace || d.instSpaceType){
-                if (d.label.indexOf('_:') !== -1) {
-                    return 7;
-                } else if (d.instance || d.label.indexOf('inst:') !== -1) {
-                    return 10;
-                } else if (d.owlClass || d.label.indexOf('inst:') !== -1) {
-                    return 9;
-                } else {
-                    return 8;
-                }
-            })
+            .attr('r', (d: Node) =>
+                this.nodeRadius(d)
+            )
             .on('click', (d: Node) => {
                 this.clicked(d);
             });
 
         // ==================== When dragging ====================
         this.forceSimulation.on('tick', () => {
-            nodes.attr('cx', (d: Node) => d.x).attr('cy', (d: Node) => d.y);
-
-            links.attr(
-                'd',
-                (d: Triples) =>
-                    'M' +
-                    d.nodeSubject.x +
-                    ',' +
-                    d.nodeSubject.y +
-                    'S' +
-                    d.nodePredicate.x +
-                    ',' +
-                    d.nodePredicate.y +
-                    ' ' +
-                    d.nodeObject.x +
-                    ',' +
-                    d.nodeObject.y
-            );
-
-            nodeTexts.attr('x', (d: Node) => d.x + 12).attr('y', (d: Node) => d.y + 3);
-
-            linkTexts
-                .attr('x', (d: Triples) => 4 + (d.nodeSubject.x + d.nodePredicate.x + d.nodeObject.x) / 3)
-                .attr('y', (d: Triples) => 4 + (d.nodeSubject.y + d.nodePredicate.y + d.nodeObject.y) / 3);
+            // update node and link positions each tick of the simulation
+            this.updateNodePositions(nodes);
+            this.updateNodeTextPositions(nodeTexts);
+            this.updateLinkPositions(links);
+            this.updateLinkTextPositions(linkTexts);
         });
+
+        // ==================== DRAG ====================
+        this.dragHandler(nodes, this.forceSimulation);
+
+        // ==================== ZOOM ====================
+        this.zoomHandler(this.zoomGroup, this.svg);
     }
 
-    private _filterNodesById(nodes, id) {
+    clicked(d: Node): void {
+        if (d3_selection.event.defaultPrevented) {
+            return;
+        } // dragged
+
+        this.clickedURI.emit(d);
+    }
+
+    private dragHandler(dragObject: D3Selection, simulation: D3Simulation) {
+        // Drag functions
+        // d is the node
+        const dragStart = (d: Node) => {
+            /** Preventing propagation of dragstart to parent elements */
+            d3_selection.event.sourceEvent.stopPropagation();
+
+            if (!d3_selection.event.active) {
+                simulation.alphaTarget(0.3).restart();
+            }
+            d.fx = d.x;
+            d.fy = d.y;
+        };
+
+        // make sure you can't drag the circle outside the box
+        const dragActions = (d: Node) => {
+            d.fx = d3_selection.event.x;
+            d.fy = d3_selection.event.y;
+        };
+
+        const dragEnd = (d: Node) => {
+            if (!d3_selection.event.active) {
+                simulation.alphaTarget(0);
+            }
+            d.fx = null;
+            d.fy = null;
+        };
+
+        // apply drag handler
+        dragObject.call(
+            d3_drag
+                .drag()
+                .on("start", dragStart)
+                .on("drag", dragActions)
+                .on("end", dragEnd)
+        );
+    }
+
+    private zoomHandler(zoomArea: any, svg: any) {
+        // zoom actions is a function that performs the zooming.
+        const zoomActions = () => {
+            zoomArea.attr("transform", d3_selection.event.transform);
+        };
+
+        // apply zoom handler
+        svg.call(d3_zoom.zoom().on("zoom", zoomActions));
+    }
+
+    private updateNodePositions(nodes: D3Selection): void {
+        // constrains the nodes to be within a box
+        nodes.attr('cx', (d: Node) => (d.x = Math.max(
+            this.nodeRadius(d),
+            Math.min(this.divWidth - this.nodeRadius(d), d.x)
+        )) ).attr('cy', (d: Node) => (d.y = Math.max(
+            this.nodeRadius(d),
+            Math.min(this.divHeight - this.nodeRadius(d), d.y)
+        )));
+    }
+
+    private updateNodeTextPositions(nodeTexts: D3Selection): void {
+        // constrains the nodes to be within a box
+        nodeTexts.attr('x', (d: Node) => d.x + 12).attr('y', (d: Node) => d.y + 3);
+    }
+
+    private updateLinkPositions(links: D3Selection): void {
+        links.attr(
+            'd',
+            (d: Triples) =>
+                'M' +
+                d.nodeSubject.x +
+                ',' +
+                d.nodeSubject.y +
+                'S' +
+                d.nodePredicate.x +
+                ',' +
+                d.nodePredicate.y +
+                ' ' +
+                d.nodeObject.x +
+                ',' +
+                d.nodeObject.y
+        );
+    }
+
+    private updateLinkTextPositions(linkTexts: D3Selection): void {
+        linkTexts
+            .attr('x', (d: Triples) => 4 + (d.nodeSubject.x + d.nodePredicate.x + d.nodeObject.x) / 3)
+            .attr('y', (d: Triples) => 4 + (d.nodeSubject.y + d.nodePredicate.y + d.nodeObject.y) / 3);
+    }
+
+    private nodeRadius(d: Node): number {
+        if (!d) { return null}
+
+        let defaultRadius = 8;
+
+        // MB if(d.instance || d.instSpace || d.instSpaceType){
+        if (d.label.indexOf('_:') !== -1) {
+            return defaultRadius--;
+        } else if (d.instance || d.label.indexOf('inst:') !== -1) {
+            return defaultRadius + 2;
+        } else if (d.owlClass || d.label.indexOf('inst:') !== -1) {
+            return defaultRadius++;
+        } else {
+            return defaultRadius;
+        }
+    }
+
+    private _filterNodesById(nodes: Node[], id: string): Node[] {
         return nodes.filter(n => n.id === id);
     }
 
-    private _filterNodesByType(nodes, value) {
+    private _filterNodesByType(nodes: Node[], value: string): Node[] {
         return nodes.filter(n => n.type === value);
     }
 
-    private _triplesToGraph(triples) {
+    private _triplesToGraph(triples): Graph {
         if (!triples) {
             return;
         }
@@ -499,7 +592,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         return graph;
     }
 
-    private _parseTriples(triples) {
+    private _parseTriples(triples): Promise<{ triples, prefixes }> {
         // ParseTriples
         const parser = N3.Parser();
         const jsonTriples = [];
@@ -555,7 +648,6 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         console.log(triples);
         return triples;
     }
-
 
     private _checkForRdfType(predNode: Node): boolean {
         return (
