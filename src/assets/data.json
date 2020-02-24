@@ -16,6 +16,12 @@
             "description": "This is a simple test dataset for Webern op. 25/1."
         },
         {
+            "title": "Op25_1_Test",
+            "query": "CONSTRUCT\nWHERE {\n\t?nodeA ?edge ?nodeB\n}",
+            "triples": "<w:M317_Sk1> <w:pr_scripture> <w:M317_Sk2> .\n<w:M317_Sk2> <w:co> <w:M317_Sk2.1> .\n<w:M317_Sk2.1> <w:co> <w:M317_Sk2.1.1> .\n<w:M317_Sk2.1> <w:co> <w:M317_Sk2.1.2> .\n<w:M317_Sk2.1.2> <w:co> <w:M317_Sk2.1.2.1> .\n<w:M317_Sk2.1> <w:co> <w:M317_Sk2.1.3> .\n<w:M317_Sk2> <w:pr_content> <w:M317_Sk3> .\n<w:M317_Sk3> <w:co> <w:M317_Sk3.1> .\n<w:M317_Sk3.1> <w:co> <w:M317_Sk3.1.1> .\n<w:M317_Sk3.1> <w:co> <w:M317_Sk3.1.2> .\n<w:M317_Sk3.1> <w:co> <w:M317_Sk3.1.3> .\n<w:M317_Sk3.1.3> <w:co> <w:M317_Sk3.1.3.1> .\n<w:M317_Sk3> <w:pr> <w:M317_Sk4> .\n<w:M317_Sk4> <dc:hasPart> <w:M317_Sk4_T1A_3A> .\n<w:M317_Sk4> <dc:hasPart> <w:M317_Sk4_T3B_6> .\n<w:M317_Sk4> <dc:hasPart> <w:M317_Sk4_T7_12> .\n<w:M317_Sk4> <dc:hasPart> <w:M317_Sk4_T13_15> .\n<w:M317_Sk4_T1A_3A> <w:co> <w:M317_Sk4.1> .\n<w:M317_Sk4_T13_15> <w:co> <w:M317_Sk4.2> .\n<w:M317_Sk4_T13_15> <w:co> <w:M317_Sk4.3> .\n<w:M317_Sk4_T1A_3A> <w:pr> <w:M317_Sk4_T3B_6> .\n<w:M317_Sk4_T3B_6> <w:pr> <w:M317_Sk4_T7_12> .\n<w:M317_Sk4_T7_12> <w:pr> <w:M317_Sk4_T13_15> .\n<w:PT_SB3_38v_#1_Akk1_4> <w:pr> <w:M317_Sk1> .\n<w:PT_SB3_38v_#2_date_19340704> <w:co> <w:M317_Sk1> .\n<w:PT_SB3_38v_#2_date_19340704> <w:co> <w:M317_Sk2> .\n<w:PT_SB3_38v_#3_timesignature2> <w:pr_scripture> <w:M317_Sk3> .\n<w:M317_Sk4_T1A_3A> <w:co> <w:PT_SB3_38v_#4_Akk14_16> . \n<w:PT_SB3_38v_#4_Akk14_16> <w:pr> <w:M317_Sk4.1> .\n<w:PT_SB3_39r_#1_Akk> <w:pr> <w:M317_Sk1> .\n<w:M317_Sk4> <w:pr> <w:PT_SB3_38v_#6_page75> .\n<w:M317_Sk4> <w:pr> <w:PT_SB3_39r_#2_date_19340714> .\n<w:PT_SB3_39r_#2_date_19340714> <w:pr> <w:PT_SB3_38v_#5_Titel> .\n<w:M317_Sk4> <w:pr> <w:PT_SB3_39r_#3_page76> .",
+            "description": "Test1\n"
+        },
+        {
             "title": "1: Sample data",
             "query": "CONSTRUCT\nWHERE {\n\t?nodeA ?edge ?nodeB\n}",
             "triples": "<DTU116> <is_a> <Building> .\n<DTU116> <contains_space> <Auditorium81> .\n<DTU116> <contains_space> <Auditorium82> .\n<Auditorium81> <is_a> <Room> .\n<Auditorium82> <is_a> <Room> .\n<Auditorium81> <contains_element> <Chair1> .\n<Chair1> <is_a> <Chair> .",

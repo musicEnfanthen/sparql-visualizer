@@ -224,8 +224,6 @@ export class QueryService {
     }
 
     public sparqlJSON(data) {
-
-
         // Get variable keys
         const varKeys = _.keysIn(data[0]);
 

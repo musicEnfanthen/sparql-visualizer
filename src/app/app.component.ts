@@ -16,7 +16,6 @@ import { from } from 'rxjs';
     styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-
     private queryResult$;
     private resultFieldExpanded = false;
     public tabIndex: number;
@@ -189,23 +188,22 @@ export class AppComponent implements OnInit {
         } else {
            */
         // Perform query with client based rdfstore
-            try {
-                const result = from(this.queryService.doQuery(query, data));
-                this.resultFieldExpanded = true;
+        try {
+            const result = from(this.queryService.doQuery(query, data));
+            this.resultFieldExpanded = true;
 
-                return result;
-            } catch (err) {
-                // this.queryResult = '';
-                console.log('ERROR', err);
-                if (err.message && err.name) {
-                    /*if (err.indexOf('undefined') !== -1) {
+            return result;
+        } catch (err) {
+            // this.queryResult = '';
+            console.log('ERROR', err);
+            if (err.message && err.name) {
+                /*if (err.indexOf('undefined') !== -1) {
                         this.showSnackbar('The query did not return any results', 10000);
                     }*/
-                    this.showSnackbar(err.name + ': ' + err.message, 10000);
-                }
-                return from([]);
+                this.showSnackbar(err.name + ': ' + err.message, 10000);
             }
-
+            return from([]);
+        }
     }
 
     async queryTriplestore(query) {

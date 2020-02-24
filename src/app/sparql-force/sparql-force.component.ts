@@ -22,7 +22,6 @@ import * as screenfull from 'screenfull';
 
 import { PrefixSimplePipe } from '../pipes/prefix-simple.pipe';
 
-
 export class Node implements d3_force.SimulationNodeDatum {
     id: string;
     label: string;
@@ -100,7 +99,6 @@ export class Graph {
 export interface D3Simulation extends d3_force.Simulation<Node, Link> {}
 
 export interface D3Selection extends d3_selection.Selection<any, any, any, any> {}
-
 
 @Component({
     selector: 'app-sparql-force',
@@ -280,17 +278,19 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         this.forceSimulation = d3_force.forceSimulation();
 
         // Create forces
-        const chargeForce = d3_force.forceManyBody().strength((d: Node) => this.nodeRadius(d) * -5 );
+        const chargeForce = d3_force.forceManyBody().strength((d: Node) => this.nodeRadius(d) * -5);
 
         const centerForce = d3_force.forceCenter(this.divWidth / 2, this.divHeight / 2);
 
-        const collideForce = d3_force.forceCollide()
-                .strength(1)
-                .radius((d: Node) => this.nodeRadius(d) + 5)
-                .iterations(2);
+        const collideForce = d3_force
+            .forceCollide()
+            .strength(1)
+            .radius((d: Node) => this.nodeRadius(d) + 5)
+            .iterations(2);
 
         // create a custom link force with id accessor to use named sources and targets
-        const linkForce = d3_force.forceLink()
+        const linkForce = d3_force
+            .forceLink()
             .links(this.graph.links)
             .id((d: Link) => d.predicate)
             .distance(30);
@@ -300,16 +300,15 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         // also going to add a centering force
         // also going to add the custom link force
         this.forceSimulation
-            .force("charge_force", chargeForce)
-            .force("center_force", centerForce)
-            .force("collied_force", collideForce);
+            .force('charge_force', chargeForce)
+            .force('center_force', centerForce)
+            .force('collied_force', collideForce);
 
         // add nodes to the simulation
         this.forceSimulation.nodes(this.graph.nodes);
 
         // add links  to the simulation
-        this.forceSimulation.force("links", linkForce);
-
+        this.forceSimulation.force('links', linkForce);
     }
 
     updateChart(): void {
@@ -318,7 +317,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         }
 
         // ==================== Add Encompassing Group for Zoom =====================
-        this.zoomGroup = this.svg.append("g").attr("class", "zoom-container");
+        this.zoomGroup = this.svg.append('g').attr('class', 'zoom-container');
 
         // ==================== Add Marker ====================
         this.zoomGroup
@@ -356,7 +355,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
             .text((d: Triples) => d.nodePredicate.label);
 
         // ==================== Add Node Names =====================
-        const nodeTexts:D3Selection = this.zoomGroup
+        const nodeTexts: D3Selection = this.zoomGroup
             .selectAll('.node-text')
             .data(this._filterNodesByType(this.graph.nodes, 'node'))
             .enter()
@@ -387,9 +386,7 @@ export class SparqlForceComponent implements OnInit, OnChanges {
                 }
             })
             .attr('id', (d: Node) => d.label)
-            .attr('r', (d: Node) =>
-                this.nodeRadius(d)
-            )
+            .attr('r', (d: Node) => this.nodeRadius(d))
             .on('click', (d: Node) => {
                 this.clicked(d);
             });
@@ -450,31 +447,33 @@ export class SparqlForceComponent implements OnInit, OnChanges {
         dragObject.call(
             d3_drag
                 .drag()
-                .on("start", dragStart)
-                .on("drag", dragActions)
-                .on("end", dragEnd)
+                .on('start', dragStart)
+                .on('drag', dragActions)
+                .on('end', dragEnd)
         );
     }
 
     private zoomHandler(zoomArea: any, svg: any) {
         // zoom actions is a function that performs the zooming.
         const zoomActions = () => {
-            zoomArea.attr("transform", d3_selection.event.transform);
+            zoomArea.attr('transform', d3_selection.event.transform);
         };
 
         // apply zoom handler
-        svg.call(d3_zoom.zoom().on("zoom", zoomActions));
+        svg.call(d3_zoom.zoom().on('zoom', zoomActions));
     }
 
     private updateNodePositions(nodes: D3Selection): void {
         // constrains the nodes to be within a box
-        nodes.attr('cx', (d: Node) => (d.x = Math.max(
-            this.nodeRadius(d),
-            Math.min(this.divWidth - this.nodeRadius(d), d.x)
-        )) ).attr('cy', (d: Node) => (d.y = Math.max(
-            this.nodeRadius(d),
-            Math.min(this.divHeight - this.nodeRadius(d), d.y)
-        )));
+        nodes
+            .attr(
+                'cx',
+                (d: Node) => (d.x = Math.max(this.nodeRadius(d), Math.min(this.divWidth - this.nodeRadius(d), d.x)))
+            )
+            .attr(
+                'cy',
+                (d: Node) => (d.y = Math.max(this.nodeRadius(d), Math.min(this.divHeight - this.nodeRadius(d), d.y)))
+            );
     }
 
     private updateNodeTextPositions(nodeTexts: D3Selection): void {
@@ -508,7 +507,9 @@ export class SparqlForceComponent implements OnInit, OnChanges {
     }
 
     private nodeRadius(d: Node): number {
-        if (!d) { return null}
+        if (!d) {
+            return null;
+        }
 
         let defaultRadius = 8;
 
@@ -583,16 +584,16 @@ export class SparqlForceComponent implements OnInit, OnChanges {
 
             const blankLabel = '';
 
-            graph.links.push(new Link(subjNode, predNode, blankLabel, 1 ));
-            graph.links.push(new Link(predNode, objNode, blankLabel, 1 ));
+            graph.links.push(new Link(subjNode, predNode, blankLabel, 1));
+            graph.links.push(new Link(predNode, objNode, blankLabel, 1));
 
-            graph.nodeTriples.push(new Triples(subjNode, predNode, objNode ));
+            graph.nodeTriples.push(new Triples(subjNode, predNode, objNode));
         });
 
         return graph;
     }
 
-    private _parseTriples(triples): Promise<{ triples, prefixes }> {
+    private _parseTriples(triples): Promise<{ triples; prefixes }> {
         // ParseTriples
         const parser = N3.Parser();
         const jsonTriples = [];
